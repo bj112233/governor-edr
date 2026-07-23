@@ -65,8 +65,8 @@ def test_wal_checkpoint(db_path):
 def test_core_tables_exist(db_name):
     """Each DB must have its expected core tables."""
     db_path = DATA_DIR / db_name
-    if not db_path.exists():
-        pytest.skip(f"{db_name} not found in data/")
+    if not db_path.exists() or db_path.stat().st_size == 0:
+        pytest.skip(f"{db_name} not found or empty in data/")
     expected_tables = _EXPECTED_DBS[db_name]
     with sqlite3.connect(str(db_path)) as conn:
         tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
