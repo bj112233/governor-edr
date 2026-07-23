@@ -1,0 +1,98 @@
+{
+  "_comment": "Technical document analysis profiles - manuals, patents, datasheets",
+  "_category": "technical",
+  "profiles": {
+    "technical_manual": {
+      "description": "מדריך טכני - IEC standards + international",
+      "language": "he",
+      "sections": [
+        {
+          "name": "מפרט טכני",
+          "keywords": ["מפרט", "specifications", "specs", "טכני"]
+        },
+        {
+          "name": "דרישות חשמל",
+          "keywords": ["מתח", "voltage", "זרם", "current", "V", "A", "W", "Hz"]
+        },
+        {
+          "name": "תקן IEC",
+          "keywords": ["IEC", "תקן", "standard", "CE", "UL", "FCC"]
+        },
+        {
+          "name": "הוראות התקנה",
+          "keywords": ["התקנה", "installation", "setup", "assembly"]
+        },
+        {
+          "name": "נוהל הפעלה",
+          "keywords": ["הפעלה", "operation", "user guide", "manual"]
+        },
+        {
+          "name": "תחזוקה שוטפת",
+          "keywords": ["תחזוקה", "maintenance", "preventive", "periodic"]
+        },
+        {
+          "name": "פתרון תקלות",
+          "keywords": ["תקלה", "troubleshooting", "fault", "error"]
+        },
+        {
+          "name": "אזהרות בטיחות",
+          "keywords": ["אזהרה", "warning", "סכנה", "danger", "caution", "⚠️"]
+        },
+        {
+          "name": "צריכת חלפים",
+          "keywords": ["חלפים", "spare parts", "parts list", "catalog"]
+        },
+        {
+          "name": "סכמת חיווט",
+          "keywords": ["חיווט", "wiring", "diagram", "schematic"]
+        }
+      ]
+    },
+    "patent_document": {
+      "description": "מסמך פטנט - Israel Patent Law + PCT international",
+      "language": "he",
+      "sections": [
+        {
+          "name": "מספר פטנט",
+          "keywords": ["מספר", "patent number", "IL", "US", "EP", "WO"]
+        },
+        {
+          "name": "ממציאים",
+          "keywords": ["ממציא", "inventor", "רשימת ממציאים"]
+        },
+        {
+          "name": "מועד הגשה",
+          "keywords": ["הגשה", "filing date", "priority date", "מועד"]
+        },
+        {
+          "name": "מועד פרסום",
+          "keywords": ["פרסום", "publication date", "published"]
+        },
+        {
+          "name": "תחום טכנולוגי",
+          "keywords": ["IPC", "classification", "class", "תחום"]
+        },
+        {
+          "name": "סטטוס",
+          "keywords": ["סטטוס", "status", "granted", "pending", "expired"]
+        },
+        {
+          "name": "טענות עיקריות",
+          "keywords": ["טענה", "claim", "claims", "independent claim"]
+        },
+        {
+          "name": "תיאור המצאה",
+          "keywords": ["תיאור", "description", "specification"]
+        },
+        {
+          "name": "דוגמאות מופשטות",
+          "keywords": ["איורים", "drawings", "figures", "תרשימים"]
+        },
+        {
+          "name": "האם PCT",
+          "keywords": ["PCT", "הגשה בינלאומית", "international phase"]
+        }
+      ]
+    }
+  }
+}

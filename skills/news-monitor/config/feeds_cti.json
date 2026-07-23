@@ -1,0 +1,41 @@
+{
+  "feeds": [
+    {
+      "name": "BleepingComputer",
+      "url": "https://www.bleepingcomputer.com/feed/",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=bleepingcomputer.com&sz=128"
+    },
+    {
+      "name": "The Hacker News",
+      "url": "https://thehackernews.com/feeds/posts/default",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=thehackernews.com&sz=128"
+    },
+    {
+      "name": "Krebs on Security",
+      "url": "https://krebsonsecurity.com/feed/",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=krebsonsecurity.com&sz=128"
+    },
+    {
+      "name": "CERT-IL",
+      "url": "https://www.gov.il/he/departments/cyber_national_directorate/rss",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=gov.il&sz=128"
+    }
+  ],
+  "keywords": [
+    "ransomware",
+    "zero-day",
+    "cve",
+    "breach",
+    "exploit",
+    "apt",
+    "vulnerability",
+    "malware",
+    "phishing",
+    "botnet",
+    "critical"
+  ]
+}

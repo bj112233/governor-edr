@@ -1,0 +1,44 @@
+{
+  "_comment": "Cybersecurity & infosec feeds. Use: news_monitor.py --config config/feeds_cyber.json",
+  "feeds": [
+    {
+      "name": "Ynet מחשבים",
+      "url": "https://www.ynet.co.il/Integration/StoryRss544.xml",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=ynet.co.il&sz=128"
+    },
+    {
+      "name": "Ynet טכנולוגיה",
+      "url": "https://www.ynet.co.il/Integration/StoryRss545.xml",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=ynet.co.il&sz=128"
+    },
+    {
+      "name": "Walla TECH",
+      "url": "https://rss.walla.co.il/feed/6?type=main",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=rss.walla.co.il&sz=128"
+    }
+  ],
+  "keywords": [
+    "ransomware",
+    "phishing",
+    "malware",
+    "exploit",
+    "CVE",
+    "zero-day",
+    "breach",
+    "leak",
+    "APT",
+    "botnet",
+    "סייבר",
+    "פריצה",
+    "האקרים",
+    "כופרה",
+    "דליפה",
+    "וירוס",
+    "פגיעות",
+    "אבטחה"
+  ],
+  "check_interval_minutes": 60
+}

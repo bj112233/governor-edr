@@ -1,0 +1,51 @@
+{
+  "_comment": "Israeli defense/security news. Use: news_monitor.py --config config/feeds_security_mil.json",
+  "feeds": [
+    {
+      "name": "Walla! ביטחון",
+      "url": "https://rss.walla.co.il/feed/2689",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=rss.walla.co.il&sz=128"
+    },
+    {
+      "name": "Israel Hayom",
+      "url": "https://www.israelhayom.co.il/rss.xml",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=israelhayom.co.il&sz=128"
+    },
+    {
+      "name": "Haaretz חדשות",
+      "url": "https://www.haaretz.co.il/srv/rss---feedly",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=haaretz.co.il&sz=128"
+    },
+    {
+      "name": "סרוגים",
+      "url": "https://www.srugim.co.il/feed/",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=srugim.co.il&sz=128"
+    }
+  ],
+  "keywords": [
+    "צה\"ל",
+    "חמאס",
+    "חיזבאללה",
+    "איראן",
+    "סוריה",
+    "לבנון",
+    "עזה",
+    "יהודה ושומרון",
+    "כטב\"מ",
+    "טיל",
+    "מילואים",
+    "פיגוע",
+    "ירי",
+    "IDF",
+    "Hamas",
+    "Hezbollah",
+    "Iran",
+    "missile",
+    "drone"
+  ],
+  "check_interval_minutes": 30
+}

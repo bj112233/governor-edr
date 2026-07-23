@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Exec(git status)",
+      "Exec(git diff)",
+      "Exec(git log)",
+      "Exec(git add)",
+      "Exec(git commit)",
+      "Exec(git restore --staged)",
+      "Exec(git show)",
+      "Exec(git branch)",
+      "Exec(git checkout)",
+      "Exec(git switch)",
+      "Exec(git stash)",
+      "Exec(.\\.venv\\Scripts\\python.exe bin\\lint-gate.py --fast)",
+      "Exec(.\\.venv\\Scripts\\python.exe -m pytest -x)",
+      "Exec(.\\.venv\\Scripts\\python.exe -m pip list)",
+      "Exec(.\\.venv\\Scripts\\python.exe -m pip show)"
+    ],
+    "deny": [
+      "Exec(git push)",
+      "Exec(rm -rf)",
+      "Exec(sudo)"
+    ]
+  }
+}

@@ -1,0 +1,51 @@
+From: attacker@evil-domain.com
+To: victim@example.com
+Subject: Urgent: Verify Your Account
+Reply-To: phish@catcher.net
+Return-Path: bounce@evil-domain.com
+Date: Sun, 28 Jun 2026 12:00:00 +0000
+Message-ID: <abc123@evil-domain.com>
+X-Mailer: Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)
+X-Originating-IP: 192.168.1.100
+Authentication-Results: mx.google.com; dkim=fail header.i=@evil-domain.com;
+ spf=fail (mailfrom) smtp.mailfrom=evil-domain.com; dmarc=fail (p=none
+ dis=none) header.from=evil-domain.com
+Received: from mail.evil-domain.com (192.168.1.100) by mx.google.com with
+ ESMTP for <victim@example.com>; Sun, 28 Jun 2026 12:00:00 +0000
+Received: from localhost (localhost [127.0.0.1]) by mail.evil-domain.com; Sun,
+ 28 Jun 2026 11:59:00 +0000
+Content-Type: multipart/alternative;
+ boundary="===============6367639480343038354=="
+
+--===============6367639480343038354==
+MIME-Version: 1.0
+Content-Type: multipart/related;
+ boundary="===============7315616867130690847=="
+
+--===============7315616867130690847==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Dear Customer,
+
+Your account has been suspended. Visit https://evil-phishing-site.com/login?t=
+oken=3Dabc123 to verify.
+
+--===============7315616867130690847==
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+Content-Disposition: inline
+
+<html><body>
+<p>Dear Customer,</p>
+<p>Your account has been suspended. Click here to verify:=20
+<a href=3D"https://evil-phishing-site.com/login?token=3Dabc123">Verify Accoun=
+t</a></p>
+<p>Or visit: http://192.168.1.50/reset</p>
+<p>Contact: support@evil-domain.com</p>
+</body></html>
+
+--===============7315616867130690847==--
+
+--===============6367639480343038354==--

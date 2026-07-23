@@ -1,0 +1,43 @@
+{
+  "_comment": "Health & medicine feeds. Use: news_monitor.py --config config/feeds_health.json",
+  "feeds": [
+    {
+      "name": "Ynet בריאות",
+      "url": "https://www.ynet.co.il/Integration/StoryRss1208.xml",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=ynet.co.il&sz=128"
+    },
+    {
+      "name": "Walla בריאות",
+      "url": "https://rss.walla.co.il/feed/139?type=main",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=rss.walla.co.il&sz=128"
+    },
+    {
+      "name": "Haaretz בריאות",
+      "url": "https://www.haaretz.co.il/srv/%D7%91%D7%A8%D7%99%D7%90%D7%95%D7%AA--%D7%94%D7%90%D7%A8%D7%A5-rss",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=haaretz.co.il&sz=128"
+    }
+  ],
+  "keywords": [
+    "בריאות",
+    "חיסון",
+    "מחלה",
+    "מגפה",
+    "וירוס",
+    "קורונה",
+    "שפעת",
+    "אנטיביוטיקה",
+    "תרופה",
+    "ניתוח",
+    "קופת חולים",
+    "בית חולים",
+    "רופא",
+    "vaccine",
+    "pandemic",
+    "WHO",
+    "outbreak"
+  ],
+  "check_interval_minutes": 120
+}

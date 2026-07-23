@@ -1,0 +1,12 @@
+# Optional extras for the `email-forensics` skill.
+#
+# Core (.eml) parsing uses Python stdlib + html2text (already in main requirements).
+# These are OPTIONAL:
+#   - extract-msg: Outlook .msg file support
+#   - dkimpy: independent DKIM signature verification (default: parse Authentication-Results)
+#
+# Usage:
+#   pip install -r skills/email-forensics/requirements-heavy.txt
+
+extract-msg>=0.55
+dkimpy>=1.1

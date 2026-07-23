@@ -1,0 +1,236 @@
+{
+  "_comment": "Corporate/organizational document analysis profiles",
+  "_category": "corporate",
+  "profiles": {
+    "board_resolution": {
+      "description": "החלטת דירקטוריון - Israel Companies Law (חוק החברות) + international",
+      "language": "he",
+      "fields": [
+        {
+          "name": "מספר החלטה",
+          "keywords": ["החלטה", "resolution number", "מס'", "no"]
+        },
+        {
+          "name": "שם חברה",
+          "keywords": ["חברה", "company", "corporation", "שם"]
+        },
+        {
+          "name": "מספר חברה",
+          "keywords": ["מספר חברה", "company number"]
+        },
+        {
+          "name": "תאריך ישיבה",
+          "keywords": ["תאריך", "date", "מועד", "held on"]
+        },
+        {
+          "name": "מקום ישיבה",
+          "keywords": ["מקום", "place", "venue", "מיקום"]
+        },
+        {
+          "name": "נוכחים",
+          "keywords": ["נוכחים", "attendees", "directors", "מנהלים", "דירקטורים"]
+        },
+        {
+          "name": "נושא",
+          "keywords": ["נושא", "subject", "agenda item"]
+        },
+        {
+          "name": "תמצית ההחלטה",
+          "keywords": ["מחליטים", "resolved", "decided", "it was resolved"]
+        },
+        {
+          "name": "הרשאות שניתנו",
+          "keywords": ["מורשים", "authorized", "אישור", "approval"]
+        },
+        {
+          "name": "חתימות דירקטורים",
+          "keywords": ["חתום", "signed", "חתימה", "signature"]
+        }
+      ]
+    },
+    "audit_report": {
+      "description": "דוח ביקורת - Israel auditing standards (תקני ביקורת ישראל) + IFAC",
+      "language": "he",
+      "sections": [
+        {
+          "name": "סוג ביקורת",
+          "keywords": ["ביקורת", "audit", "סוג", "type", "financial", "מס"]
+        },
+        {
+          "name": "תקופה מבוקרת",
+          "keywords": ["תקופה", "period", "לשנה", "for the year", "ended"]
+        },
+        {
+          "name": "היקף",
+          "keywords": ["היקף", "scope", "נוהלים", "procedures"]
+        },
+        {
+          "name": "תקן ביקורת",
+          "keywords": ["תקן", "ISA", "auditing standards"]
+        },
+        {
+          "name": "דעת הביקורת",
+          "keywords": ["דעתנו", "opinion", "we have audited"],
+          "good_if": ["ללא התניות", "unqualified"],
+          "bad_if": ["עם התניות", "qualified", "שלילית", "adverse"]
+        },
+        {
+          "name": "חוסרים מהותיים",
+          "keywords": ["חוסר", "deficiency", "material weakness", "internal control"],
+          "bad_if": ["נמצא", "identified"]
+        },
+        {
+          "name": "המלצות",
+          "keywords": ["ממליצים", "recommendations", "suggest"]
+        },
+        {
+          "name": "חתימת רואה חשבון",
+          "keywords": ["רואה חשבון", "CPA", "accountant", "חתימה", "signature"]
+        },
+        {
+          "name": "מספר רישיון",
+          "keywords": ["רישיון רואה חשבון", "license", "CPA license"]
+        }
+      ]
+    },
+    "academic_transcript": {
+      "description": "גיליון ציונים - Israel + international academic",
+      "language": "he",
+      "fields": [
+        {
+          "name": "שם סטודנט",
+          "keywords": ["סטודנט", "student", "שם", "name"]
+        },
+        {
+          "name": "מספר תעודת זהות",
+          "keywords": ["תז", "ת.ז.", "ID", "ID number"]
+        },
+        {
+          "name": "מוסד לימודים",
+          "keywords": ["מוסד", "institution", "אוניברסיטה", "university", "מכללה", "college"]
+        },
+        {
+          "name": "תקופת לימודים",
+          "keywords": ["סמסטר", "semester", "שנה", "year", "תקופה"]
+        },
+        {
+          "name": "קורסים",
+          "keywords": ["קורס", "course", "מקצוע", "subject"]
+        },
+        {
+          "name": "קוד קורס",
+          "keywords": ["קוד", "course code", "catalog number"]
+        },
+        {
+          "name": "נקודות זכות",
+          "keywords": ["נקז", "credits", "hours", "שעות"]
+        },
+        {
+          "name": "ציונים",
+          "keywords": ["ציון", "grade", "score", "mark"]
+        },
+        {
+          "name": "ממוצע משוקלל",
+          "keywords": ["ממוצע", "GPA", "average", "ציון מצטבר"]
+        },
+        {
+          "name": "הצטיינות",
+          "keywords": ["הצטיינות", "honors", "dean's list", "president's list"]
+        },
+        {
+          "name": "מועד גמר",
+          "keywords": ["תאריך", "graduation date", "date of issue"]
+        }
+      ]
+    },
+    "certificate": {
+      "description": "תעודה/אישור - Israel + international standard",
+      "language": "he",
+      "fields": [
+        {
+          "name": "שם בעל התעודה",
+          "keywords": ["מוענקת ל", "awarded to", "ניתנה ל", "granted to"]
+        },
+        {
+          "name": "סוג תעודה",
+          "keywords": ["תעודת", "certificate of", "דיפלומה", "diploma", "מסמך"]
+        },
+        {
+          "name": "מוסד מעניק",
+          "keywords": ["מוענקת על ידי", "issued by", "מוסד", "institution"]
+        },
+        {
+          "name": "תאריך הנפקה",
+          "keywords": ["ניתנה", "issued date", "granted on", "הונפקה"]
+        },
+        {
+          "name": "תאריך תפוגה",
+          "keywords": ["בתוקף עד", "expires", "valid until", "expiration"]
+        },
+        {
+          "name": "מספר תעודה",
+          "keywords": ["מספר", "certificate number", "serial", "רישום"]
+        },
+        {
+          "name": "חתימה/חותמת",
+          "keywords": ["חתימה", "signature", "חותמת", "seal", "stamp"]
+        },
+        {
+          "name": "קוד QR/ברקוד",
+          "keywords": ["QR", "barcode", "קוד", "verifiable"]
+        },
+        {
+          "name": "רישום מקוון",
+          "keywords": ["אימות", "verification", "registry", "בדיקה"]
+        }
+      ]
+    },
+    "license_permit": {
+      "description": "רישיון/היתר - Israel regulatory (רשויות מקומיות/משרדים) + international",
+      "language": "he",
+      "fields": [
+        {
+          "name": "מספר רישיון",
+          "keywords": ["מספר", "license number", "permit number", "מס'", "no"]
+        },
+        {
+          "name": "סוג רישיון",
+          "keywords": ["רישיון", "license", "permit", "היתר", "authorization"]
+        },
+        {
+          "name": "רשות מנפיקה",
+          "keywords": ["רשות", "authority", "משרד", "ministry", "עירייה", "municipality"]
+        },
+        {
+          "name": "מחזיק",
+          "keywords": ["מחזיק", "holder", "בעלים", "owner"]
+        },
+        {
+          "name": "תאריך הנפקה",
+          "keywords": ["הונפק", "issued", "grant date", "מועד"]
+        },
+        {
+          "name": "תאריך תפוגה",
+          "keywords": ["תוקף עד", "expires", "valid until", "expiration", "תאריך סיום"]
+        },
+        {
+          "name": "תנאים מגבילים",
+          "keywords": ["תנאי", "conditions", "restrictions"],
+          "bad_if": ["מגביל", "restrictive"]
+        },
+        {
+          "name": "הגבלת שימוש",
+          "keywords": ["השימוש מוגבל", "restricted use", "limitations"]
+        },
+        {
+          "name": "שטח/מיקום",
+          "keywords": ["כתובת", "address", "location", "site", "שטח"]
+        },
+        {
+          "name": "חידוש רישיון",
+          "keywords": ["חידוש", "renewal", "הארכה", "extension"]
+        }
+      ]
+    }
+  }
+}

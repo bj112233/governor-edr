@@ -1,0 +1,458 @@
+{
+  "_comment": "Contract analysis profiles - Israel legal contracts. LEGAL DISCLAIMER: Not legal advice.",
+  "_category": "contracts",
+  "profiles": {
+    "rental_contract": {
+      "description": "חוזה שכירות דירה - ניתוח טוב/רע לשוכר (חוק המכר וחוק החוזים)",
+      "language": "he",
+      "clauses": [
+        {
+          "name": "תשלום שכר דירה",
+          "keywords": ["שכר דירה", "דמי שכירות", "rent"],
+          "classifier": "neutral"
+        },
+        {
+          "name": "הפקדת ביטחון",
+          "keywords": ["ביטחון", "הפקדה", "ערבות", "deposit"],
+          "good_if": ["עד חודש", "חודש אחד"],
+          "bad_if": ["3 חודשים", "שלושה חודשים", "ארבעה חודשים"]
+        },
+        {
+          "name": "סיום מוקדם",
+          "keywords": ["סיום מוקדם", "הודעה מוקדמת", "פינוי מוקדם"],
+          "bad_if": ["פיצוי", "קנס", "penalty"]
+        },
+        {
+          "name": "הארכת חוזה",
+          "keywords": ["הארכה", "חידוש", "renewal"],
+          "good_if": ["באופן אוטומטי", "זכות השוכר"]
+        },
+        {
+          "name": "תיקונים ואחזקה",
+          "keywords": ["תיקון", "אחזקה", "maintenance"],
+          "good_if": ["באחריות בעל הדירה", "באחריות המשכיר"],
+          "bad_if": ["באחריות השוכר"]
+        },
+        {
+          "name": "עדכון שכר דירה",
+          "keywords": ["עליית שכר דירה", "עדכון שכר דירה", "הצמדה"],
+          "bad_if": ["ללא הגבלה", "בשיקול דעת"]
+        },
+        {
+          "name": "תת שכירות",
+          "keywords": ["שכירות משנה", "subletting"],
+          "good_if": ["מותר", "רשאי"],
+          "bad_if": ["אסור", "ללא הסכמה"]
+        },
+        {
+          "name": "חיובים נלווים",
+          "keywords": ["חשמל", "מים", "ארנונה"],
+          "classifier": "neutral"
+        },
+        {
+          "name": "זכות כניסה",
+          "keywords": ["כניסה לדירה", "inspection"],
+          "bad_if": ["ללא הודעה", "בלי הודעה"]
+        }
+      ]
+    },
+    "employment_contract": {
+      "description": "חוזה עבודה - ניתוח לעובד (חוק עבודה ישראלי)",
+      "language": "he",
+      "clauses": [
+        {
+          "name": "שכר ברוטו",
+          "keywords": ["שכר", "משכורת", "salary"],
+          "classifier": "neutral"
+        },
+        {
+          "name": "תקופת ניסיון",
+          "keywords": ["תקופת ניסיון", "trial period"],
+          "good_if": ["3 חודשים", "חודשיים"],
+          "bad_if": ["שנה", "12 חודשים", "6 חודשים"]
+        },
+        {
+          "name": "הודעה מוקדמת",
+          "keywords": ["הודעה מוקדמת", "notice period"],
+          "good_if": ["חודש"],
+          "bad_if": ["3 חודשים", "60 יום"]
+        },
+        {
+          "name": "תניית אי-תחרות",
+          "keywords": ["אי-תחרות", "non-compete", "non-competition"],
+          "bad_if": ["12 חודשים", "שנה", "אזור גיאוגרפי רחב"]
+        },
+        {
+          "name": "סודיות",
+          "keywords": ["סודיות", "NDA", "confidentiality"],
+          "classifier": "neutral"
+        },
+        {
+          "name": "קניין רוחני",
+          "keywords": ["קניין רוחני", "IP", "intellectual property"],
+          "bad_if": ["כל קניין", "ללא יוצא מן הכלל"]
+        },
+        {
+          "name": "בונוס",
+          "keywords": ["בונוס", "תגמול משתנה", "bonus"],
+          "good_if": ["מובטח", "guaranteed"],
+          "bad_if": ["שיקול דעת בלעדי"]
+        },
+        {
+          "name": "אופציות",
+          "keywords": ["אופציות", "stock options", "RSU"],
+          "good_if": ["vesting", "הבשלה"]
+        },
+        {
+          "name": "ימי חופשה",
+          "keywords": ["ימי חופשה", "vacation"],
+          "good_if": ["20 יום", "22 יום", "25 יום"],
+          "bad_if": ["12 יום", "14 יום"]
+        },
+        {
+          "name": "ביטוחי בריאות",
+          "keywords": ["ביטוח בריאות", "ביטוח רפואי"],
+          "good_if": ["חברה משלמת", "כיסוי מלא"]
+        },
+        {
+          "name": "פיצויי פיטורין",
+          "keywords": ["פיצויים", "severance"],
+          "classifier": "neutral"
+        },
+        {
+          "name": "סעיף 14",
+          "keywords": ["סעיף 14", "section 14", "מעמ", "מס ערך מוסף", "VAT", "18%"],
+          "good_if": ["מעל לחוק"]
+        }
+      ]
+    },
+    "vehicle_contract": {
+      "description": "חוזה רכב (ליסינג/קנייה/השכרה ארוכה)",
+      "language": "he",
+      "clauses": [
+        {
+          "name": "מחיר",
+          "keywords": ["מחיר", "תמורה", "price"],
+          "classifier": "neutral"
+        },
+        {
+          "name": "תקופת חוזה",
+          "keywords": ["תקופת חוזה", "תקופת השכירות"],
+          "classifier": "neutral"
+        },
+        {
+          "name": "מס' ק\"מ מותרים",
+          "keywords": ["ק\"מ", "kilometers"],
+          "bad_if": ["10,000", "12,000"],
+          "good_if": ["20,000", "25,000"]
+        },
+        {
+          "name": "ביטוח",
+          "keywords": ["ביטוח חובה", "ביטוח מקיף", "insurance"],
+          "good_if": ["כלול"],
+          "bad_if": ["באחריות הנהג"]
+        },
+        {
+          "name": "שירות ותחזוקה",
+          "keywords": ["שירות", "טיפולים", "maintenance"],
+          "good_if": ["כלול"]
+        },
+        {
+          "name": "השבת רכב",
+          "keywords": ["השבת רכב", "החזרת רכב"],
+          "bad_if": ["קנס", "פיצוי על נזק", "wear and tear"]
+        }
+      ]
+    },
+    "purchase_contract": {
+      "description": "חוזה מכר/קנייה - Israel Consumer Protection Law (חוק הגנת הצרכן) + international",
+      "language": "he",
+      "_legal_note": "חוק הגנת הצרכן התשמ\"א-1981, כולל סעיף 14ג (זכות ביטול עסקה מרחוק)",
+      "clauses": [
+        {
+          "name": "מחיר",
+          "keywords": ["מחיר", "price", "תמורה", "consideration"],
+          "classifier": "neutral"
+        },
+        {
+          "name": "מטבע",
+          "keywords": ["מטבע", "currency", "שח", "ILS", "USD", "$"]
+        },
+        {
+          "name": "אמצעי תשלום",
+          "keywords": ["תשלום", "payment", "אשראי", "credit", "העברה", "wire"],
+          "classifier": "neutral"
+        },
+        {
+          "name": "מועד מסירה",
+          "keywords": ["מסירה", "delivery", "משלוח", "shipping"],
+          "good_if": ["מיידי", "immediate"],
+          "bad_if": ["90 יום", "90 days"]
+        },
+        {
+          "name": "אחריות",
+          "keywords": ["אחריות", "warranty"],
+          "good_if": ["שנתיים", "24 חודשים", "2 years"],
+          "bad_if": ["חודש", "month"]
+        },
+        {
+          "name": "זכות השבה",
+          "keywords": ["השבה", "refund", "return", "ביטול", "cancellation"],
+          "good_if": ["14 יום", "30 יום", "14 days", "30 days"]
+        },
+        {
+          "name": "תנאי ביטול",
+          "keywords": ["ביטול", "cancellation"],
+          "bad_if": ["קנס", "penalty", "דמי ביטול"]
+        },
+        {
+          "name": "חוק הגנת הצרכן",
+          "keywords": ["הגנת הצרכן", "consumer protection", "סעיף 14ג"]
+        },
+        {
+          "name": "קניין רוחני",
+          "keywords": ["זכויות", "IP", "intellectual property", "קניין רוחני"]
+        },
+        {
+          "name": "כתובת מסירה",
+          "keywords": ["כתובת", "address", "איסוף עצמי", "pickup"]
+        },
+        {
+          "name": "מכס/יבוא",
+          "keywords": ["מכס", "customs", "duty", "יבוא", "import"]
+        },
+        {
+          "name": "היקף שירות",
+          "keywords": ["היקף", "scope", "תיאור שירות"]
+        },
+        {
+          "name": "SLA זמן תגובה",
+          "keywords": ["SLA", "זמן תגובה", "response time"],
+          "good_if": ["4 שעות", "24 שעות", "4 hours", "24 hours"]
+        },
+        {
+          "name": "זמינות",
+          "keywords": ["uptime", "זמינות", "availability"],
+          "good_if": ["99.9%", "99.99%"]
+        },
+        {
+          "name": "תקופת חוזה",
+          "keywords": ["תקופה", "term", "duration", "חודשים", "years"]
+        },
+        {
+          "name": "תנאי סיום",
+          "keywords": ["סיום", "termination"],
+          "good_if": ["הודעה מוקדמת", "notice"]
+        },
+        {
+          "name": "הגבלת אחריות",
+          "keywords": ["אחריות מוגבלת", "limitation of liability"],
+          "bad_if": ["עד סכום", "תקרה", "cap"]
+        },
+        {
+          "name": "מיסוי",
+          "keywords": ["מעמ", "VAT", "מס", "tax"]
+        },
+        {
+          "name": "חוק החוזים",
+          "keywords": ["חוק החוזים", "contracts law", "תרופות"]
+        },
+        {
+          "name": "בוררות",
+          "keywords": ["בוררות", "arbitration", "בורר"]
+        },
+        {
+          "name": "סודיות",
+          "keywords": ["סודיות", "confidentiality", "סוד מסחרי"]
+        }
+      ]
+    },
+    "nda_confidentiality": {
+      "description": "NDA - International + Israeli trade secrets law (חוק סודות מסחריים התשפ\"ד-2024)",
+      "language": "he",
+      "_legal_note": "חוק סודות מסחריים נכנס לתוקף ב-2024",
+      "clauses": [
+        {
+          "name": "הגדרת מידע סודי",
+          "keywords": ["מידע סודי", "confidential information", "סוד מסחרי"]
+        },
+        {
+          "name": "תקופת סודיות",
+          "keywords": ["תקופה", "duration", "פומבי", "publicly known"],
+          "bad_if": ["5 שנים", "10 שנים", "5 years", "10 years"]
+        },
+        {
+          "name": "החרגות",
+          "keywords": ["חרגות", "exceptions", "ידוע", "already known"]
+        },
+        {
+          "name": "חוק סודות מסחריים",
+          "keywords": ["סודות מסחריים", "trade secrets", "תקנות סודות מסחריים"]
+        },
+        {
+          "name": "החזרת מידע",
+          "keywords": ["החזרה", "return", "השמדה", "destruction"]
+        },
+        {
+          "name": "סעדים",
+          "keywords": ["צו מניעה", "injunctive relief", "סעדים"]
+        },
+        {
+          "name": "דין חל",
+          "keywords": ["דין", "governing law", "שיפוט", "jurisdiction"]
+        },
+        {
+          "name": "מספר צדדים",
+          "keywords": ["צד א", "צד ב", "party A", "party B", "חברה", "company"]
+        }
+      ]
+    },
+    "power_of_attorney": {
+      "description": "ייפוי כוח - Israel Notary Law (חוק הנוטריונים) + international",
+      "language": "he",
+      "clauses": [
+        {
+          "name": "מייפה",
+          "keywords": ["מייפה", "grantor", "נותן", "name", "שם", "תז"]
+        },
+        {
+          "name": "מיופה",
+          "keywords": ["מיופה", "attorney", "מקבל", "recipient"]
+        },
+        {
+          "name": "תחומי סמכות",
+          "keywords": ["סמכות", "powers", "פעולות", "actions"]
+        },
+        {
+          "name": "הגבלת סכומים",
+          "keywords": ["סכום", "amount limit", "מגבלה", "limit"]
+        },
+        {
+          "name": "תקופת תוקף",
+          "keywords": ["תוקף", "validity", "מועד", "expiration"]
+        },
+        {
+          "name": "הסמכה לחתום",
+          "keywords": ["חתימה", "signature", "לחתום", "sign"]
+        },
+        {
+          "name": "האם בלתי הדיר",
+          "keywords": ["בלתי הדיר", "irrevocable"],
+          "bad_if": ["כן", "yes"]
+        },
+        {
+          "name": "נוטריון",
+          "keywords": ["נוטריון", "notary", "אימות", "authentication"]
+        },
+        {
+          "name": "חתימת עדים",
+          "keywords": ["עד", "witness", "חתימת עד"]
+        },
+        {
+          "name": "חובת דיווח",
+          "keywords": ["דיווח", "reporting", "חשבונית"]
+        }
+      ]
+    },
+    "will_testament": {
+      "description": "צוואה - Israel Succession Law (חוק הירושה התשכ\"ב-1965) + international",
+      "language": "he",
+      "clauses": [
+        {
+          "name": "נותן הצוואה",
+          "keywords": ["אני", "testator", "נותן", "שם", "תז"]
+        },
+        {
+          "name": "יורשים ראשיים",
+          "keywords": ["יורש", "heir", "beneficiary", "נותן במתנה", "bequest"]
+        },
+        {
+          "name": "נכסים",
+          "keywords": ["נכס", "property", "asset", "דירה", "apartment", "כספים"]
+        },
+        {
+          "name": "מנהל העיזבון",
+          "keywords": ["מנהל", "executor"]
+        },
+        {
+          "name": "חוק הירושה",
+          "keywords": ["ירושה", "succession", "צוואה", "will law"]
+        },
+        {
+          "name": "תאריך חתימה",
+          "keywords": ["חתום", "signed", "נחתם", "date signed"]
+        },
+        {
+          "name": "עדים",
+          "keywords": ["עד", "witness", "עדים", "witnesses"]
+        },
+        {
+          "name": "הוראות מיוחדות",
+          "keywords": ["הוראות", "provisions", "תנאים", "conditions"]
+        },
+        {
+          "name": "הפקדה ברשם",
+          "keywords": ["רשם", "registry", "הפקדה"]
+        },
+        {
+          "name": "ביטול צוואות קודמות",
+          "keywords": ["ביטול", "revoke", "צוואה קודמת"]
+        }
+      ]
+    },
+    "mortgage_agreement": {
+      "description": "הסכם משכנתא - Israel Banking Law (חוק הבנקאות) + international",
+      "language": "he",
+      "clauses": [
+        {
+          "name": "סכום הלוואה",
+          "keywords": ["סכום", "loan amount", "principal", "קרן"]
+        },
+        {
+          "name": "מטרת הלוואה",
+          "keywords": ["מטרה", "purpose", "דיור", "housing", "מיחזור"]
+        },
+        {
+          "name": "שער ריבית",
+          "keywords": ["ריבית", "interest", "פריים", "prime"],
+          "good_if": ["prime"],
+          "bad_if": ["variable high"]
+        },
+        {
+          "name": "הצמדה",
+          "keywords": ["הצמדה", "indexation", "מדד"],
+          "bad_if": ["מלאה", "full"]
+        },
+        {
+          "name": "תקופת החזר",
+          "keywords": ["שנים", "years", "months"]
+        },
+        {
+          "name": "תשלום חודשי",
+          "keywords": ["תשלום חודשי", "monthly payment", "הוראת קבע", "standing order"]
+        },
+        {
+          "name": "מוקדם ללא קנס",
+          "keywords": ["מוקדם", "prepayment"],
+          "good_if": ["ללא קנס", "no penalty", "30%"]
+        },
+        {
+          "name": "ביטוי חיים",
+          "keywords": ["ביטוח", "insurance", "ביטוי חיים", "life insurance"]
+        },
+        {
+          "name": "ביטוח מבנה",
+          "keywords": ["ביטוח מבנה", "structure insurance"]
+        },
+        {
+          "name": "הלוואה רגלית/לא רגלית",
+          "keywords": ["רגלית", "non-recourse", "recourse"]
+        },
+        {
+          "name": "חוק המכר",
+          "keywords": ["מכר", "sale law", "שיעבוד", "mortgage"]
+        }
+      ]
+    }
+  }
+}

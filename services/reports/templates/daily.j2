@@ -1,0 +1,21 @@
+{% extends "base.j2" %}
+{% block content %}📊 סטטוס מערכת
+{{ sys_status }}
+{% if include_procs %}
+
+🔥 Top 5 תהליכים (CPU)
+{{ procs_section }}
+{% endif %}
+{% if hunt_line %}
+
+🛡️ OSINT Hunts (24h)
+{{ hunt_line }}
+{% endif %}
+{% if sitrep %}
+
+🧠 SITREP אבטחה — סיכום מודיעיני
+{{ sitrep }}
+{% endif %}
+
+{{ alerts_section }}
+{% endblock %}

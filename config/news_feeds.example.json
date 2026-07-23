@@ -1,0 +1,39 @@
+{
+  "feeds": [
+    {
+      "name": "TechCrunch",
+      "url": "https://techcrunch.com/feed/",
+      "type": "rss",
+      "category": "tech"
+    },
+    {
+      "name": "Hacker News",
+      "url": "https://hnrss.org/frontpage",
+      "type": "rss",
+      "category": "tech"
+    },
+    {
+      "name": "Walla News",
+      "url": "https://rss.walla.co.il/feed/1",
+      "type": "rss",
+      "category": "israel"
+    },
+    {
+      "name": "Krebs on Security",
+      "url": "https://krebsonsecurity.com/feed/",
+      "type": "rss",
+      "category": "cybersecurity"
+    }
+  ],
+  "keywords": [],
+  "delivery": {
+    "telegram": {
+      "enabled": true,
+      "chat_id": "${TELEGRAM_CHAT_ID}",
+      "schedule_time": "09:00",
+      "timezone": "Asia/Jerusalem",
+      "format": "html",
+      "items_per_category": 5
+    }
+  }
+}

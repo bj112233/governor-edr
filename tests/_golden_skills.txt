@@ -1,0 +1,32 @@
+🤖 Claw 🐾 — Skills זמינים
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+📄 שלח קובץ PDF או תמונה — מנותח אוטומטית
+━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🛡️ אבטחה ומודיעין
+├─ 🔐 Crypto Skill · hash, encrypt
+├─ 🛡️ Firewall Skill · block, allow
+└─ 🕵️ Intel Skill · lookup
+
+📊 נתונים וכלכלה
+├─ 💱 Currency Skill · convert
+├─ 📊 Report Maker · generate
+└─ 📈 Stocks Skill · quote
+
+🌐 מדיה ותקשורת
+├─ 📰 News Monitor · fetch
+├─ 🌐 Translator Skill · run
+└─ 🕷️ Web Scraper · scrape
+
+🔧 כלים ושירותים
+├─ 📄 File Analyst · ocr, summarize
+├─ 🗺️ Geocode Skill · geocode
+└─ 🌤️ Weather Skill · forecast
+
+🔧 כלים נוספים
+└─ 🔧 extra-skill · run
+
+💡 שיחה טבעית — אין צורך בפקודה
+פשוט בקש בעברית: "חסום IP הזה", "כמה שווה ביטקוין",
+"תרגם לי את הטקסט", "נתח את הקובץ הזה".

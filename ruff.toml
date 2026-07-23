@@ -1,0 +1,42 @@
+# ruff — fast linter + formatter (replaces flake8 + isort + pyupgrade + bugbear)
+# Docs: https://docs.astral.sh/ruff/configuration/
+
+target-version = "py312"
+line-length = 120
+extend-exclude = [
+    ".venv",
+    "__pycache__",
+    ".pytest_cache",
+    "skills/**/scripts",   # skills run as subprocesses; isolated
+    "tests/_*.py",         # manual scratch scripts, not collected
+    "tests/output",
+    "data",
+    "downloads",
+]
+
+[lint]
+# Rule families:
+#   E  = pycodestyle errors
+#   W  = pycodestyle warnings
+#   F  = pyflakes (unused imports, undefined names, etc.)
+#   I  = isort (import sorting)
+#   UP = pyupgrade (modernize syntax)
+#   B  = flake8-bugbear (common pitfalls)
+select = ["E", "W", "F", "I", "UP", "B"]
+ignore = [
+    "E501",   # line-too-long — handled by formatter, not a gate
+    "E402",   # module-import-not-at-top — intentional sys.path manipulation
+    "B008",   # function-call-in-default-argument — used in Pydantic Field defaults
+    "B905",   # zip-without-explicit-strict — Python 3.10+ default is fine
+    "B007",   # unused-loop-control-variable — false positives in protocol handlers
+    "F401",   # unused-import — too many re-export false positives; vulture covers dead code
+    "UP035",  # deprecated-import — typing.List→list etc; style upgrade, not a bug
+]
+
+[lint.per-file-ignores]
+"tests/**" = ["F811", "F841"]  # test fixtures/scratch may shadow, unused
+"tests/conftest.py" = ["F841"]  # pool vars are side-effect fixtures
+
+[format]
+quote-style = "double"
+indent-style = "space"

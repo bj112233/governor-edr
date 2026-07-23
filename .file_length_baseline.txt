@@ -1,0 +1,11 @@
+# File length baseline — files exceeding LLOC threshold (pre-existing debt).
+# Format: relative_path lloc_count
+# Empty = no debt. This file can only shrink (ratchet mechanism enforced by gate).
+tests/test_branch_rules_e2e.py 574
+tests/test_coverage_batch2.py 543
+tests/test_high_impact_coverage.py 1052
+tests/test_initializer_executor_e2e.py 725
+tests/test_misc_coverage.py 908
+tests/test_startup_memory_coverage.py 873
+tests/test_telegram_coverage.py 560
+tests/test_tools_news_coverage.py 1015

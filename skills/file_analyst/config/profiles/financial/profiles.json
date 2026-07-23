@@ -1,0 +1,247 @@
+{
+  "_comment": "Financial document analysis profiles - Israeli banking and tax formats",
+  "_category": "financial",
+  "profiles": {
+    "payslip": {
+      "description": "תלוש שכר - בדיקת חישובים וניכויים (ישראל)",
+      "language": "he",
+      "fields": [
+        {
+          "name": "שכר ברוטו",
+          "keywords": ["שכר ברוטו", "ברוטו", "gross"]
+        },
+        {
+          "name": "שכר נטו",
+          "keywords": ["שכר נטו", "נטו", "net"]
+        },
+        {
+          "name": "מס הכנסה",
+          "keywords": ["מס הכנסה", "income tax"]
+        },
+        {
+          "name": "ביטוח לאומי",
+          "keywords": ["ביטוח לאומי", "national insurance"]
+        },
+        {
+          "name": "מס בריאות",
+          "keywords": ["מס בריאות", "health tax"]
+        },
+        {
+          "name": "פנסיה",
+          "keywords": ["פנסיה", "pension"]
+        },
+        {
+          "name": "קרן השתלמות",
+          "keywords": ["קרן השתלמות", "study fund"]
+        },
+        {
+          "name": "ימי חופשה צבורים",
+          "keywords": ["ימי חופשה", "יתרת חופשה"]
+        },
+        {
+          "name": "ימי מחלה",
+          "keywords": ["ימי מחלה", "מחלה"]
+        },
+        {
+          "name": "שעות נוספות",
+          "keywords": ["שעות נוספות", "overtime"]
+        }
+      ]
+    },
+    "bank_statement": {
+      "description": "דף חשבון בנק - Israeli bank format + IBAN/SWIFT",
+      "language": "he",
+      "fields": [
+        {
+          "name": "מספר חשבון",
+          "keywords": ["מספר חשבון", "account number", "IBAN", "חשבון", "account"]
+        },
+        {
+          "name": "מספר סניף",
+          "keywords": ["סניף", "branch", "branch number"]
+        },
+        {
+          "name": "בנק",
+          "keywords": ["בנק", "bank", "דיסקונט", "הפועלים", "לאומי", "מזרחי", "אגוד", "ירושלים", "HSBC", "Citibank"]
+        },
+        {
+          "name": "תקופת דוח",
+          "keywords": ["מתאריך", "מ-", "from", "לתאריך", "עד", "to", "period"]
+        },
+        {
+          "name": "יתרת פתיחה",
+          "keywords": ["יתרת פתיחה", "opening balance", "יתרה בתחילת"]
+        },
+        {
+          "name": "יתרת סגירה",
+          "keywords": ["יתרת סגירה", "closing balance", "יתרה בסוף", "יתרה נכון ל"]
+        },
+        {
+          "name": "הכנסות",
+          "keywords": ["זכות", "credit", "הפקדה", "deposit", "הכנסה"]
+        },
+        {
+          "name": "הוצאות",
+          "keywords": ["חובה", "debit", "משיכה", "withdrawal", "הוצאה"]
+        },
+        {
+          "name": "הלוואות פעילות",
+          "keywords": ["הלוואה", "loan", "credit line", "מסגרת", "overdraft"]
+        },
+        {
+          "name": "SWIFT",
+          "keywords": ["SWIFT", "BIC", "קוד בנק"]
+        },
+        {
+          "name": "מטבע",
+          "keywords": ["מטבע", "currency", "ILS", "USD", "EUR", "שח", "$", "€"]
+        }
+      ]
+    },
+    "tax_return": {
+      "description": "דוח שנתי מס הכנסה - Israel Form 1301 + international",
+      "language": "he",
+      "fields": [
+        {
+          "name": "שנת מס",
+          "keywords": ["שנת", "tax year", "שנת המס", "year"]
+        },
+        {
+          "name": "תז",
+          "keywords": ["תז", "ת.ז.", "מספר זהות", "ID number", "תעודת זהות"]
+        },
+        {
+          "name": "הכנסה חייבת",
+          "keywords": ["הכנסה חייבת", "taxable income", "הכנסה כוללת", "total income"]
+        },
+        {
+          "name": "ניכויים",
+          "keywords": ["ניכוי", "deduction", "זיכוי", "credit", "תרומות", "pension"]
+        },
+        {
+          "name": "מס לתשלום",
+          "keywords": ["חבות", "tax payable", "יתרת חובה", "balance due"]
+        },
+        {
+          "name": "החזר",
+          "keywords": ["החזר", "refund", "זיכוי", "overpayment"],
+          "good_if": ["positive", "להחזר"]
+        },
+        {
+          "name": "מקדמות שולמו",
+          "keywords": ["מקדמות", "advance payments", "ניכויים במקור", "withholding"]
+        },
+        {
+          "name": "שכר טרחה רואה חשבון",
+          "keywords": ["שכר טרחה", "accountant fee"]
+        }
+      ]
+    },
+    "invoice_receipt": {
+      "description": "חשבונית/קבלה - Israeli חוק מעמ (18%) + international",
+      "language": "he",
+      "_vat_note": "מעמ בישראל 18% נכון לינואר 2025 (עלה מ-17%)",
+      "fields": [
+        {
+          "name": "מספר חשבונית",
+          "keywords": ["חשבונית", "invoice number", "מספר", "invoice #"]
+        },
+        {
+          "name": "מספר קבלה",
+          "keywords": ["קבלה", "receipt number", "receipt #"]
+        },
+        {
+          "name": "תאריך",
+          "keywords": ["תאריך", "date", "נוצרה", "issued"]
+        },
+        {
+          "name": "חפ ספק",
+          "keywords": ["חפ", "ח.פ.", "supplier ID", "חפ ספק", "מספר עוסק", "עוסק מורשה"]
+        },
+        {
+          "name": "חפ לקוח",
+          "keywords": ["חפ לקוח", "customer ID", "תז לקוח"]
+        },
+        {
+          "name": "ספק/מוכר",
+          "keywords": ["ספק", "מוכר", "vendor", "supplier", "שם העוסק"]
+        },
+        {
+          "name": "לקוח",
+          "keywords": ["לקוח", "customer", "client"]
+        },
+        {
+          "name": "סכום ללא מעמ",
+          "keywords": ["ללא מעמ", "subtotal", "לפני מעמ", "excl. VAT"]
+        },
+        {
+          "name": "שיעור מעמ",
+          "keywords": ["מעמ", "מס ערך מוסף", "VAT", "18%"]
+        },
+        {
+          "name": "סכום מעמ",
+          "keywords": ["סכום מעמ", "VAT amount"]
+        },
+        {
+          "name": "סכום כולל",
+          "keywords": ["סהכ", "סכום כולל", "total", "סכום לתשלום"]
+        },
+        {
+          "name": "תנאי תשלום",
+          "keywords": ["תשלום", "payment terms", "מועד תשלום", "due date"]
+        }
+      ]
+    },
+    "annual_report": {
+      "description": "דוח שנתי חברה - IFRS/GAAP + Israeli Companies Law",
+      "language": "he",
+      "_tax_note": "מס חברות בישראל 23% (הועלה בהדרגה מ-25%)",
+      "fields": [
+        {
+          "name": "מחזור",
+          "keywords": ["מחזור", "revenue", "turnover", "sales", "הכנסות"]
+        },
+        {
+          "name": "רווח גולמי",
+          "keywords": ["רווח גולמי", "gross profit", "margin"]
+        },
+        {
+          "name": "רווח תפעולי",
+          "keywords": ["רווח תפעולי", "operating profit", "EBIT"]
+        },
+        {
+          "name": "רווח נקי",
+          "keywords": ["רווח נקי", "net profit", "net income", "bottom line"]
+        },
+        {
+          "name": "EBITDA",
+          "keywords": ["EBITDA", "רווח לפני מסים", "depreciation"]
+        },
+        {
+          "name": "הון עצמי",
+          "keywords": ["הון עצמי", "equity", "shareholders equity", "total equity"]
+        },
+        {
+          "name": "חובות",
+          "keywords": ["חובות", "liabilities", "long-term debt", "short-term debt"]
+        },
+        {
+          "name": "מזומנים",
+          "keywords": ["מזומנים", "cash", "equivalents", "treasury"]
+        },
+        {
+          "name": "EPS",
+          "keywords": ["EPS", "רווח למניה", "earnings per share"]
+        },
+        {
+          "name": "מס חברות",
+          "keywords": ["מס חברות", "corporate tax", "23%"]
+        },
+        {
+          "name": "מספר חברה",
+          "keywords": ["מספר חברה", "company number", "corporation ID"]
+        }
+      ]
+    }
+  }
+}

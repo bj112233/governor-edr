@@ -1,0 +1,66 @@
+{
+  "_comment": "Israeli politics feeds. Use: news_monitor.py --config config/feeds_politics_il.json",
+  "feeds": [
+    {
+      "name": "Ynet פוליטיקה",
+      "url": "https://www.ynet.co.il/Integration/StoryRss194.xml",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=ynet.co.il&sz=128"
+    },
+    {
+      "name": "Walla! פוליטי",
+      "url": "https://rss.walla.co.il/feed/2686",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=rss.walla.co.il&sz=128"
+    },
+    {
+      "name": "Maariv",
+      "url": "https://www.maariv.co.il/Rss/RssFeedsTitle",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=maariv.co.il&sz=128"
+    },
+    {
+      "name": "Haaretz דעות",
+      "url": "https://www.haaretz.co.il/srv/rss-opinion",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=haaretz.co.il&sz=128"
+    },
+    {
+      "name": "Israel Hayom",
+      "url": "https://www.israelhayom.co.il/rss.xml",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=israelhayom.co.il&sz=128"
+    },
+    {
+      "name": "סרוגים",
+      "url": "https://www.srugim.co.il/feed/",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=srugim.co.il&sz=128"
+    },
+    {
+      "name": "זמן",
+      "url": "https://www.zman.co.il/feed/",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=zman.co.il&sz=128"
+    }
+  ],
+  "keywords": [
+    "כנסת",
+    "ממשלה",
+    "קואליציה",
+    "אופוזיציה",
+    "נתניהו",
+    "ליכוד",
+    "ישראל ביתנו",
+    "יש עתיד",
+    "מחנה ממלכתי",
+    "ש\"ס",
+    "יהדות התורה",
+    "חוק",
+    "הצבעה",
+    "ועדה",
+    "בחירות",
+    "סקר"
+  ],
+  "check_interval_minutes": 60
+}

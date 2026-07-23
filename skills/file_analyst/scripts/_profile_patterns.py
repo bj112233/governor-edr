@@ -1,0 +1,61 @@
+"""Profile detection patterns — filename + keyword maps for detect_profile.
+
+Extracted from profile_loader.py to reduce file size (SRP).
+"""
+
+FILENAME_PATTERNS: dict[str, list[str]] = {
+    "rental_contract": ["חוזה שכירות", "שכירות", "rental", "lease"],
+    "employment_contract": ["חוזה עבודה", "עבודה", "employment"],
+    "vehicle_contract": ["חוזה רכב", "רכב", "vehicle", "car_"],
+    "purchase_contract": ["חוזה מכר", "מכר", "purchase"],
+    "nda_confidentiality": ["nda", "סודיות", "confidentiality"],
+    "power_of_attorney": ["ייפוי כוח", "power of attorney", "attorney"],
+    "will_testament": ["צוואה", "will", "testament"],
+    "mortgage_agreement": ["משכנתא", "mortgage"],
+    "car_insurance_policy": [
+        "ביטוח רכב", "car insurance", "vehicle insurance",
+        "mandatorycarinsurance", "insurancepolicy",
+    ],
+    "home_insurance_policy": ["ביטוח דירה", "ביטוח בית", "home insurance"],
+    "life_insurance_policy": ["ביטוח חיים", "life insurance"],
+    "health_insurance_policy": ["ביטוח בריאות", "health insurance"],
+    "payslip": ["תלוש", "payslip", "salary"],
+    "bank_statement": ["דף חשבון", "bank statement", "statement"],
+    "tax_return": ["דוח שנתי", "tax return", "tax_"],
+    "invoice_receipt": ["חשבונית", "קבלה", "invoice", "receipt"],
+    "court_ruling": ["פסק דין", "court ruling", "judgment"],
+    "legal_notice": ["התראה", "legal notice", "notice"],
+    "medical_report": ["דוח רפואי", "medical report"],
+    "lab_results": ["תוצאות מעבדה", "lab results", "blood test"],
+}
+
+KEYWORDS_MAP: dict[str, list[str]] = {
+    "rental_contract": ["חוזה", "שכירות", "שכר דירה", "rental", "lease", "landlord", "tenant", "דירה", "apartment"],
+    "employment_contract": ["חוזה", "חוזה עבודה", "משכורת", "employment", "salary", "מעסיק", "עובד"],
+    "vehicle_contract": ["חוזה", "חוזה רכב", "מכירת רכב", "רכב משומש", "vehicle contract", "car sale", "עסקת מכר", "רכב"],
+    "purchase_contract": ["חוזה", "חוזה מכר", "עסקת מכר", "רכישת דירה", "purchase contract", "sale agreement"],
+    "nda_confidentiality": ["חוזה", "הסכם", "הסכם סודיות", "סודיות", "NDA", "non-disclosure", "confidentiality"],
+    "power_of_attorney": ["ייפוי כוח", "פיקוח", "power of attorney", " attorney", "proxy", "כוח"],
+    "will_testament": ["צוואה", "ירושה", "will", "testament", "צוואה הדדית"],
+    "mortgage_agreement": ["הסכם", "הלוואת משכנתא", "משכנתא", "ריבית משכנתא", "mortgage", "home loan", "הלוואת בנק"],
+    "car_insurance_policy": ["ביטוח רכב", "פוליסת רכב", "פוליסה", "car insurance", "vehicle insurance", "insurance", "ביטוח חובה", "צד ג"],
+    "home_insurance_policy": ["ביטוח דירה", "ביטוח בית", "home insurance", "property insurance"],
+    "life_insurance_policy": ["ביטוח חיים", "life insurance", "מבוטח", "מוטבים"],
+    "health_insurance_policy": ["ביטוח בריאות", "health insurance", "קופת חולים"],
+    "bank_statement": ["דף חשבון", "יתרה", "bank statement", "account balance"],
+    "tax_return": ["דוח שנתי", "מס הכנסה", "tax return", "taxable income"],
+    "invoice_receipt": ["חשבונית", "קבלה", "invoice", "receipt", "מעמ"],
+    "medical_report": ["דוח רפואי", "אבחנה", "medical report", "diagnosis"],
+    "court_ruling": ["פסק דין", "תיק", "court ruling", "judgment", "verdict"],
+    "legal_notice": ["מכתב משפטי", "התראה", "legal notice", "cease and desist", "התראת בגץ"],
+    "lab_results": ["תוצאות מעבדה", "בדיקת דם", "lab results", "blood test", "urine test", "תוצאות בדיקה"],
+    "payslip": ["תלוש שכר", "ניכוי", "payslip", "salary slip", "pay stub"],
+    "annual_report": ["דוח שנתי", "דוח כספי", "annual report", "financial report", "year end"],
+    "board_resolution": ["החלטת דירקטוריון", "החלטת ועד", "board resolution", "corporate resolution"],
+    "audit_report": ["דוח ביקורת", "auditor", "audit report", "סעיף מקצועי", "הערת עניין"],
+    "academic_transcript": ["גיליון ציונים", "תעודה אקדמית", "transcript", "academic record", "university grades"],
+    "certificate": ["תעודה", "אישור", "certificate", "certification", "תעודת זהות"],
+    "license_permit": ["רישיון", "היתר", "license", "permit", "רישיון עסק"],
+    "technical_manual": ["מדריך טכני", "חוברת הוראות", "technical manual", "user manual", "specification"],
+    "patent_document": ["פטנט", "בקשת פטנט", "patent", "patent application", "claims"],
+}

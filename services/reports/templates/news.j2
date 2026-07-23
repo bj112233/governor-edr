@@ -1,0 +1,8 @@
+{#- News-intelligence LLM context block (services.scheduled_news._delivery).
+   NOT a delivered report — no header/base.j2 inheritance. Renders the
+   per-category, per-item bullet list fed to the LLM as user_input. -#}
+{%- for cat, items in categorized.items() if items %}
+## {{ cat }}
+{% for it in items %}
+- [{{ (it.title or "")|trim }}]{% if it.source %} ({{ (it.source or "")|trim }}){% endif %}{% if it.sentiment %} [{{ (it.sentiment or "")|trim }}]{% endif %}{% if it.ai_summary %} — {{ (it.ai_summary or "")|trim }}{% endif %}{% if it.link %} | {{ (it.link or "")|trim }}{% endif %}{{ "\n" }}{% endfor %}
+{% endfor -%}

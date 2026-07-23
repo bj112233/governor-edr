@@ -1,0 +1,14 @@
+# Optional ML extras for the `file-analyst` skill.
+#
+# Install only if you need:
+#   - MarkItDown (Microsoft PDF→Markdown converter for `pdf_to_md`)
+#
+# OCR is handled by Tesseract 5.x (CPU-only, baseline dependency) — no
+# heavy ML stack is required for OCR anymore. EasyOCR + PyTorch were
+# removed (abandoned upstream, no Hebrew model, ~2GB torch footprint
+# competed with the LLM for the 6GB VRAM budget).
+#
+# Usage:
+#   pip install -r skills/file-analyst/requirements-heavy.txt
+
+markitdown>=0.0.1

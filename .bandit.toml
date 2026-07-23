@@ -1,0 +1,16 @@
+# bandit — SAST for Python security bot
+# The bot legitimately uses: subprocess (skill executor), SQL string construction
+# (with parameterized placeholders), hashlib (non-security hashing), bind-all
+# (local MCP server). We skip these known-expected patterns and gate on the rest.
+
+[tool.bandit]
+skips = [
+    "B608",   # hardcoded_sql_expressions — uses parameterized placeholders, not injection
+    "B104",   # hardcoded_bind_all_interfaces — local MCP server, intentional
+    "B324",   # hashlib weak md5 — used for content hashing, not security
+    "B404",   # import subprocess — skill executor, shell=False enforced
+    "B603",   # call subprocess without shell=True — shell=False is mandatory
+    "B607",   # partial path in subprocess — skill scripts are resolved to absolute
+    "B602",   # subprocess call with shell — never used (AssertionError if str)
+    "B701",   # jinja2 autoescape=False — Markdown output, not HTML (services/reports/env.py)
+]

@@ -1,0 +1,72 @@
+{
+  "_comment": "Israeli general news feeds. Use: news_monitor.py --config config/feeds_news_il.json",
+  "feeds": [
+    {
+      "name": "Ynet ראשי",
+      "url": "https://www.ynet.co.il/Integration/StoryRss2.xml",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=ynet.co.il&sz=128"
+    },
+    {
+      "name": "Ynet מבזקים",
+      "url": "https://www.ynet.co.il/Integration/StoryRss1854.xml",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=ynet.co.il&sz=128"
+    },
+    {
+      "name": "Walla! חדשות",
+      "url": "https://rss.walla.co.il/feed/1",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=rss.walla.co.il&sz=128"
+    },
+    {
+      "name": "Maariv",
+      "url": "https://www.maariv.co.il/Rss/RssFeedsTitle",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=maariv.co.il&sz=128"
+    },
+    {
+      "name": "N12",
+      "url": "https://rcs.mako.co.il/rss/news-israel.xml",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=rcs.mako.co.il&sz=128"
+    },
+    {
+      "name": "Israel Hayom",
+      "url": "https://www.israelhayom.co.il/rss.xml",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=israelhayom.co.il&sz=128"
+    },
+    {
+      "name": "Haaretz חדשות",
+      "url": "https://www.haaretz.co.il/srv/rss---feedly",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=haaretz.co.il&sz=128"
+    },
+    {
+      "name": "סרוגים",
+      "url": "https://www.srugim.co.il/feed/",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=srugim.co.il&sz=128"
+    },
+    {
+      "name": "זמן",
+      "url": "https://www.zman.co.il/feed/",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=zman.co.il&sz=128"
+    }
+  ],
+  "keywords": [
+    "ישראל",
+    "ירושלים",
+    "תל אביב",
+    "ממשלה",
+    "כנסת",
+    "נתניהו",
+    "צה\"ל",
+    "מבזק",
+    "אסון",
+    "תאונה"
+  ],
+  "check_interval_minutes": 30
+}

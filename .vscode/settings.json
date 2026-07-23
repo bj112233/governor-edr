@@ -1,0 +1,44 @@
+{
+    "python.languageServer": "None",
+    "python.defaultInterpreterPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.cwd": "${workspaceFolder}",
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}"
+    ],
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4,
+    "editor.rulers": [
+        100
+    ],
+    "editor.trimAutoWhitespace": true,
+    "files.trimTrailingWhitespace": true,
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/*.pyc": true,
+        "**/.git": true,
+        "**/alerts.db": false,
+        "**/reference.db": false,
+        "**/state": true
+    },
+    "files.watcherExclude": {
+        "**/__pycache__/**": true,
+        "**/logs/**": true,
+        "**/state/**": true
+    },
+    "python.envFile": "${workspaceFolder}/.env",
+    "terminal.integrated.env.windows": {
+        "PYTHONPATH": "${workspaceFolder}"
+    },
+    "search.exclude": {
+        "**/__pycache__": true,
+        "**/logs": true,
+        "**/*.db": true
+    },
+    "git.ignoreLimitWarning": true
+}

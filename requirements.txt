@@ -1,0 +1,136 @@
+aiogram>=3.29.0
+aiofiles==25.1.0
+aiohappyeyeballs==2.6.1
+aiohttp==3.14.1
+aiosignal==1.4.0
+aiosqlite==0.22.1
+annotated-doc==0.0.4
+annotated-types==0.7.0
+anyio==4.13.0
+APScheduler==3.11.2
+attrs==26.1.0
+certifi==2026.4.22
+cffi==2.0.0
+charset-normalizer==3.4.7
+click==8.3.3
+colorama==0.4.6
+cryptography==49.0.0
+distro==1.9.0
+fastapi==0.136.1
+frozenlist==1.8.0
+google-api-core==2.30.3
+google-api-python-client==2.196.0
+google-auth==2.52.0
+google-auth-httplib2==0.4.0
+googleapis-common-protos==1.75.0
+grpcio==1.80.0
+grpcio-status==1.80.0
+h11==0.16.0
+httpcore==1.0.9
+httplib2==0.32.0
+httpx==0.28.1
+httpx-ws==0.9.0
+idna==3.18
+jiter==0.14.0
+lmstudio==1.5.0
+magic-filter==1.0.12
+msgspec==0.21.1
+multidict==6.7.1
+openai==2.36.0
+propcache==0.4.1
+proto-plus==1.28.0
+protobuf>=6.31.1,<7.0.0
+Pillow>=12.3.0
+psutil==7.2.2
+pyasn1==0.6.3
+pyasn1_modules==0.4.2
+pycparser==3.0
+pydantic>=2.9.0,<2.13
+pyparsing==3.3.2
+python-dotenv==1.2.2
+requests==2.33.1
+scapy==2.7.0
+sniffio==1.3.1
+starlette==1.3.1
+tqdm==4.67.3
+typing-inspection==0.4.2
+typing_extensions==4.15.0
+tzdata==2026.2
+tzlocal==5.3.1
+uritemplate==4.2.0
+urllib3==2.7.0
+uvicorn==0.46.0
+wsproto==1.3.2
+yarl==1.23.0
+pyyaml==6.0.3
+feedparser==6.0.12
+beautifulsoup4==4.14.3
+readability-lxml==0.8.1
+html2text==2025.4.15
+pypdf>=5.0.0
+pdfplumber==0.11.9
+tweepy==4.16.0
+praw==7.8.1
+python-docx==1.2.0
+openpyxl==3.1.5
+pandas==3.0.2
+jinja2==3.1.6
+markdown==3.10.2
+lxml==6.1.1
+weasyprint==69.0
+pytesseract==0.3.13
+pdf2image==1.17.0
+matplotlib==3.10.9
+yfinance==1.3.0
+langdetect>=1.0.9
+# ── Offline Hebrew translation (opus-mt, MIT, BLEU 40-54) ─────
+# Primary backend for en↔he in the translator fallback chain.
+# Models auto-download from HuggingFace on first use (~300MB each).
+ctranslate2>=4.5,<5
+sentencepiece>=0.2,<0.3
+dnspython==2.8.0
+cachetools>=5.5.0
+
+# ── Email forensics (Visibility Triad #2) ─────────────────────
+# Core .eml parsing uses stdlib + html2text (already listed above).
+# .msg (Outlook) + independent DKIM verification are OPTIONAL:
+#   pip install -r skills/email-forensics/requirements-heavy.txt
+# (extract-msg pins beautifulsoup4<4.14 which conflicts with bs4 4.14.x above)
+
+PyJWT>=2.13.0
+argon2-cffi>=23.0.0
+bcrypt>=4.3.0
+
+geoip2>=4.8.0
+
+# ── Vector search (HNSW) for long-term memory ─────────────────
+# vectorlite is an OPTIONAL dependency. It requires a C++ compiler
+# on Windows (Visual Studio Build Tools). The codebase has full
+# graceful fallback to brute-force cosine similarity when
+# vectorlite is not installed. To enable HNSW in the future:
+#   pip install vectorlite  # (requires MSVC 14.0+)
+#
+# ── 2026 document-processing upgrades ──────────────────────────
+# OCR: Tesseract 5.x (CPU-only, heb_best.traineddata for Hebrew).
+# EasyOCR + PyTorch removed — abandoned upstream, no Hebrew model, and
+# the ~2GB torch footprint competed with the LLM for the 6GB VRAM budget.
+markitdown>=0.1.0
+
+# -- Static analysis (CI gate) --------------------------------
+radon>=6.0.1
+xenon>=0.9.3
+import-linter>=2.11.0
+vulture>=2.16
+
+# -- Type checking, linting, security --------------------------
+setuptools>=83.0.0
+mypy>=1.13.0
+ruff>=0.8.0
+bandit>=1.7.0
+pip-audit>=2.7.0
+pre-commit>=4.0.0
+pytest>=9.0.3
+pytest-asyncio>=1.0.0
+pytest-cov>=7.0.0
+pytest-timeout>=2.3.1
+

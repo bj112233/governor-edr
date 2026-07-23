@@ -1,0 +1,55 @@
+# Coverage baseline — ratchet, do NOT lower.
+# Regenerate after adding tests: python bin/coverage_gate.py --regenerate
+Total: 77.66%
+# Security functions tracked: 51
+services/_skills_engine/_process_runner.py::spawn_and_wait = 7
+services/action_tools/defender.py::defender_scan = 23
+services/action_tools/firewall.py::_add_rule = 2
+services/action_tools/firewall.py::_del_rule = 2
+services/action_tools/firewall.py::_del_rule_rollback = 7
+services/action_tools/firewall.py::block_ip = 2
+services/action_tools/firewall.py::unblock_ip = 0
+services/action_tools/screenshot.py::local_screenshot = 3
+services/action_tools/services_mgmt.py::_exec_net = 11
+services/action_tools/shell.py::_run_powershell_exec = 29
+services/action_tools/shell.py::run_powershell = 2
+services/agent/_agent_critic.py::_run_critic_evaluation = 15
+services/agent/_agent_loop.py::_check_degraded_mode = 0
+services/agent/_agent_tool_audit.py::_apply_speculation_guard = 0
+services/agent/_agent_tool_audit.py::_audit_entity_claims = 0
+services/agent/_agent_tool_audit.py::_audit_ip_claims = 0
+services/agent/_agent_tool_audit.py::_audit_tool_claims = 0
+services/agent/_agent_tool_audit.py::_check_entity_audit = 0
+services/agent/_agent_tool_audit.py::_detect_speculation = 0
+services/agent/_nodes/_executor.py::_compute_allowed_tools = 0
+services/alert_dispatcher_helpers.py::_enrich_and_escalate = 25
+services/local_mcp_server.py::_verify_mcp_auth = 0
+services/monitor_analyzer.py::_diff_suspicious_procs = 21
+services/os_module.py::kill_process_by_name = 3
+services/pending_actions.py::queue_kill_for_ttp = 0
+services/pending_actions.py::set_pending = 1
+services/remediation_engine.py::_kill_by_name = 0
+services/remediation_engine.py::block_ip_in_firewall = 0
+services/remediation_engine.py::kill_process = 0
+services/system_intel.py::get_event_log_raw = 0
+services/system_intel.py::terminate_process = 4
+services/system_intel_persistence.py::_run_subprocess = 11
+services/telegram/callbacks.py::_execute_remediation_action = 0
+services/telegram/callbacks.py::_handle_auto_block = 0
+services/telegram/callbacks.py::_handle_auto_kill = 0
+services/telegram/callbacks.py::_is_degraded_mode = 0
+services/tools/mcp_handlers.py::approve_pending_action_tool = 0
+services/tools/security_tools.py::_block_ip_handler = 0
+services/tools/security_tools.py::_defender_scan_handler = 0
+services/tools/security_tools.py::_local_screenshot_handler = 0
+services/tools/security_tools.py::_manage_service_handler = 0
+services/tools/security_tools.py::_unblock_ip_handler = 0
+services/tools/system_tools.py::_terminate_process_handler = 0
+services/two_factor.py::_check_lockout = 1
+services/two_factor.py::initiate_challenge = 0
+services/two_factor.py::verify_challenge = 8
+services/web_c2_auth.py::check_basic_auth = 0
+services/web_c2_auth.py::client_ip_allowed = 0
+services/web_c2_commands.py::dispatch_command = 4
+services/web_c2_commands.py::execute_kill_process = 7
+services/web_c2_routes.py::_check_c2_rate_limit = 1

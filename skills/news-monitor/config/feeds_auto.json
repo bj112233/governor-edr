@@ -1,0 +1,34 @@
+{
+  "_comment": "Automotive news feeds. Use: news_monitor.py --config config/feeds_auto.json",
+  "feeds": [
+    {
+      "name": "Ynet רכב",
+      "url": "https://www.ynet.co.il/Integration/StoryRss550.xml",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=ynet.co.il&sz=128"
+    },
+    {
+      "name": "Walla רכב",
+      "url": "https://rss.walla.co.il/feed/31?type=main",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=rss.walla.co.il&sz=128"
+    }
+  ],
+  "keywords": [
+    "רכב",
+    "אוטו",
+    "מכונית",
+    "חשמלי",
+    "היברידי",
+    "טסלה",
+    "פורשה",
+    "BMW",
+    "מרצדס",
+    "טויוטה",
+    "מבחן דרכים",
+    "השקה",
+    "מחיר",
+    "EV"
+  ],
+  "check_interval_minutes": 360
+}

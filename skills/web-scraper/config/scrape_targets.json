@@ -1,0 +1,67 @@
+{
+  "_comment": "Pre-configured scrape profiles. Use: web_scraper.py profile --name <name> [--query Q]",
+  "profiles": {
+    "yad2_apartments_tlv": {
+      "description": "דירות להשכרה בתל אביב ביד2",
+      "url": "https://www.yad2.co.il/realestate/rent?city=5000",
+      "selector": "[data-testid='feed-list-item']",
+      "type": "list",
+      "needs_js": true,
+      "note": "Requires Playwright; fallback to manual selectors"
+    },
+    "zap_price": {
+      "description": "השוואת מחירים ב-Zap",
+      "url_template": "https://www.zap.co.il/search.aspx?keyword={query}",
+      "selector": ".ProductBox .Price",
+      "type": "price"
+    },
+    "ksp_product": {
+      "description": "מחיר מוצר ב-KSP",
+      "url_template": "https://ksp.co.il/web/cat/268..271..573?searchstr={query}",
+      "selector": ".price-number",
+      "type": "price"
+    },
+    "amazon_price_us": {
+      "description": "מחיר מוצר באמזון US",
+      "url_template": "https://www.amazon.com/s?k={query}",
+      "selector": ".a-price .a-offscreen",
+      "type": "price"
+    },
+    "ynet_breaking": {
+      "description": "מבזקים מYnet",
+      "url": "https://www.ynet.co.il/news/category/184",
+      "selector": "h3.title, .slotTitle",
+      "type": "list"
+    },
+    "wikipedia_he": {
+      "description": "ערך בויקיפדיה עברית",
+      "url_template": "https://he.wikipedia.org/wiki/{query}",
+      "selector": "#mw-content-text .mw-parser-output > p",
+      "type": "text"
+    },
+    "wikipedia_en": {
+      "description": "Wikipedia English article",
+      "url_template": "https://en.wikipedia.org/wiki/{query}",
+      "selector": "#mw-content-text .mw-parser-output > p",
+      "type": "text"
+    },
+    "stackoverflow_q": {
+      "description": "Stack Overflow question search",
+      "url_template": "https://stackoverflow.com/search?q={query}",
+      "selector": ".question-summary .question-hyperlink",
+      "type": "list"
+    },
+    "github_repo": {
+      "description": "GitHub repo README + stats",
+      "url_template": "https://github.com/{query}",
+      "selector": "article.markdown-body, .repository-content",
+      "type": "text"
+    },
+    "hn_search": {
+      "description": "Hacker News search",
+      "url_template": "https://hn.algolia.com/?q={query}",
+      "selector": ".Story_title",
+      "type": "list"
+    }
+  }
+}

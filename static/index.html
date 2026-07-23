@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sentinel Tactical C2 — real-time threat monitoring dashboard">
+  <title>Sentinel Enterprise C2 Tactical Command Center</title>
+
+  <!-- High-Performance Dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style type="text/tailwindcss">
+    @theme {
+      color-slate-950: #0a0014;
+      color-slate-900: #120024;
+      color-slate-800: #1e0a3c;
+      color-slate-700: #3b1a6b;
+      color-cyan-500: #00e5ff;
+      color-cyan-400: #7df9ff;
+      color-neon-purple: #b026ff;
+      color-neon-pink: #ff2e9a;
+      color-neon-cyan: #00e5ff;
+      color-neon-green: #39ff14;
+    }
+
+    body {
+      background-color: #0a0014;
+      color: #e0d0ff;
+      font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', ui-monospace, monospace;
+      background-image:
+        linear-gradient(rgba(176, 38, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 229, 255, 0.04) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    /* Hardware-Accelerated Layout Containers */
+    .grid-command {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 1.25rem;
+    }
+
+    /* Hexagon clip-path for metric cards */
+    .metric-panel {
+      @apply flex flex-col justify-between transition-all duration-300 p-4 relative;
+      background: linear-gradient(135deg, rgba(30, 10, 60, 0.85), rgba(18, 0, 36, 0.9));
+      border: 1px solid rgba(176, 38, 255, 0.25);
+      clip-path: polygon(8% 0, 92% 0, 100% 15%, 100% 85%, 92% 100%, 8% 100%, 0 85%, 0 15%);
+      will-change: transform, border-color, box-shadow;
+    }
+    .metric-panel:hover {
+      border-color: rgba(0, 229, 255, 0.5);
+      box-shadow: 0 0 16px rgba(0, 229, 255, 0.15), inset 0 0 12px rgba(176, 38, 255, 0.08);
+    }
+
+    .metric-value {
+      @apply text-2xl font-bold font-mono tracking-tight mt-1;
+      color: #7df9ff;
+      text-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+    }
+    .metric-value.critical {
+      color: #ff2e9a;
+      text-shadow: 0 0 12px rgba(255, 46, 154, 0.6);
+      animation: critical-pulse 1.2s ease-in-out infinite;
+    }
+    .metric-value.warning {
+      color: #ffb800;
+      text-shadow: 0 0 8px rgba(255, 184, 0, 0.4);
+    }
+
+    .metric-title {
+      @apply text-[10px] uppercase tracking-widest font-semibold flex items-center gap-1.5;
+      color: #b026ff;
+      text-shadow: 0 0 6px rgba(176, 38, 255, 0.3);
+    }
+
+    /* Critical glow pulse — for values exceeding thresholds */
+    @keyframes critical-pulse {
+      0%, 100% { text-shadow: 0 0 12px rgba(255, 46, 154, 0.6); }
+      50% { text-shadow: 0 0 24px rgba(255, 46, 154, 0.9), 0 0 4px rgba(255, 46, 154, 1); }
+    }
+
+    /* Scanline animation — radar sweep on active cards */
+    .metric-panel::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.6), transparent);
+      animation: scanline 3s linear infinite;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .metric-panel:hover::after { opacity: 1; }
+    @keyframes scanline {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(80px); }
+    }
+
+    /* Radial gauge — SVG circle progress */
+    .gauge-wrap { position: relative; width: 72px; height: 72px; }
+    .gauge-bg { stroke: rgba(176, 38, 255, 0.15); }
+    .gauge-fill { transition: stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+    .gauge-label {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      font-size: 11px; font-weight: bold; font-family: ui-monospace, monospace;
+      color: #7df9ff; text-shadow: 0 0 6px rgba(0, 229, 255, 0.4);
+    }
+
+    /* SSE Real-Time Row Transitions via CSS Animations instead of full repaints */
+    @keyframes row-arrival {
+      0% { background-color: rgba(255, 46, 154, 0.2); transform: scale(0.995); }
+      100% { background-color: transparent; transform: scale(1); }
+    }
+    .live-row-update {
+      animation: row-arrival 2s cubic-bezier(0.16, 1, 0.3, 1) 1;
+    }
+
+    /* Custom Dense Scrollbar — neon styled */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: rgba(18, 0, 36, 0.5); }
+    ::-webkit-scrollbar-thumb { background: rgba(176, 38, 255, 0.4); border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0, 229, 255, 0.6); }
+
+    /* Toast notification system — replaces blocking alert() (F2). */
+    #toastContainer {
+      position: fixed; top: 16px; right: 16px; z-index: 9999;
+      display: flex; flex-direction: column; gap: 8px;
+      pointer-events: none; max-width: 360px;
+    }
+    .toast {
+      pointer-events: auto;
+      padding: 10px 14px; border-radius: 4px;
+      font-family: ui-monospace, monospace; font-size: 11px; font-weight: 600;
+      color: #e0d0ff; background: rgba(18, 0, 36, 0.95);
+      border: 1px solid rgba(176, 38, 255, 0.4);
+      box-shadow: 0 0 16px rgba(176, 38, 255, 0.2), 0 4px 12px rgba(0,0,0,0.4);
+      display: flex; align-items: flex-start; gap: 8px;
+      animation: toast-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      backdrop-filter: blur(8px);
+    }
+    .toast.toast-success { border-color: rgba(57, 255, 20, 0.4); box-shadow: 0 0 16px rgba(57, 255, 20, 0.15); }
+    .toast.toast-success .toast-icon { color: #39ff14; }
+    .toast.toast-error   { border-color: rgba(255, 46, 154, 0.4); box-shadow: 0 0 16px rgba(255, 46, 154, 0.15); }
+    .toast.toast-error .toast-icon   { color: #ff2e9a; }
+    .toast.toast-info    { border-color: rgba(0, 229, 255, 0.4); box-shadow: 0 0 16px rgba(0, 229, 255, 0.15); }
+    .toast.toast-info .toast-icon    { color: #00e5ff; }
+    .toast.fade-out { animation: toast-out 0.3s ease forwards; }
+    @keyframes toast-in  { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes toast-out { to   { opacity: 0; transform: translateX(20px); } }
+
+    /* Light mode (F3) — CSS filter invert for dark-only dashboard.
+       Charts/canvas/img excluded to avoid color corruption. */
+    html:not(.dark) body { filter: invert(1) hue-rotate(180deg); }
+    html:not(.dark) img, html:not(.dark) canvas, html:not(.dark) video,
+    html:not(.dark) .vis-network, html:not(.dark) #toastContainer {
+      filter: invert(1) hue-rotate(180deg);
+    }
+    /* Theme toggle button */
+    #themeToggle {
+      cursor: pointer; user-select: none;
+      width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+      border-radius: 4px; border: 1px solid rgba(176, 38, 255, 0.4);
+      background: rgba(18, 0, 36, 0.8); color: #7df9ff; font-size: 14px;
+      transition: all 0.2s;
+    }
+    #themeToggle:hover { background: rgba(30, 10, 60, 0.8); border-color: rgba(0, 229, 255, 0.6); box-shadow: 0 0 8px rgba(0, 229, 255, 0.2); }
+    #themeToggle:focus-visible { outline: 2px solid #00e5ff; outline-offset: 2px; }
+
+    /* Neon section headers */
+    h2, h3 { text-shadow: 0 0 8px currentColor; }
+
+    /* Auth overlay — neon cyber style */
+    #auth-overlay input {
+      text-shadow: 0 0 4px rgba(0, 229, 255, 0.3);
+    }
+    #auth-overlay input:focus {
+      box-shadow: 0 0 12px rgba(255, 46, 154, 0.3);
+    }
+    #auth-overlay button {
+      text-shadow: 0 0 8px rgba(255, 46, 154, 0.4);
+    }
+    #auth-overlay button:hover {
+      box-shadow: 0 0 20px rgba(255, 46, 154, 0.3);
+    }
+
+    /* Status bar — neon */
+    #c2-status-bar {
+      border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+      box-shadow: 0 2px 8px rgba(0, 229, 255, 0.05);
+    }
+  </style>
+</head>
+
+<body class="p-4 h-screen overflow-hidden flex flex-col antialiased selection:bg-cyan-950 selection:text-cyan-200">
+
+  <!-- Toast container (F2) — non-blocking notifications, replaces alert() -->
+  <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Auth overlay — blocks dashboard until Bearer token is obtained -->
+  <div id="auth-overlay" class="fixed inset-0 bg-slate-950/98 z-50 flex items-center justify-center"
+    style="background-color:rgba(3,7,18,0.98)">
+    <div
+      class="bg-slate-900 p-8 rounded-lg border border-rose-500/40 shadow-[0_0_20px_rgba(239,68,68,0.2)] w-96 font-mono">
+      <h2 class="text-rose-500 text-xl font-bold mb-6 text-center tracking-widest">SENTINEL C2 ACCESS</h2>
+      <form id="login-form" class="space-y-4">
+        <input type="text" id="auth-user" placeholder="OPERATOR ID"
+          class="w-full bg-slate-950 border border-slate-800 text-cyan-400 px-4 py-2 focus:outline-none focus:border-rose-500 text-sm"
+          required autocomplete="username">
+        <input type="password" id="auth-pass" placeholder="PASSKEY"
+          class="w-full bg-slate-950 border border-slate-800 text-cyan-400 px-4 py-2 focus:outline-none focus:border-rose-500 text-sm"
+          required autocomplete="current-password">
+        <button type="submit"
+          class="w-full bg-rose-950/40 hover:bg-rose-900/40 text-rose-200 py-2 border border-rose-500/60 text-sm font-bold tracking-widest transition-colors">AUTHORIZE</button>
+        <div id="auth-error" class="text-rose-500 text-xs text-center hidden mt-2"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Session status bar — visible only after authentication -->
+  <div id="c2-status-bar" class="hidden px-6 py-2 flex justify-between items-center text-xs font-mono"
+    style="background: rgba(18, 0, 36, 0.9); color: #e0d0ff;">
+    <div>SYSTEM: <span style="color:#39ff14;font-weight:bold;text-shadow:0 0 6px rgba(57,255,20,0.4)">ONLINE</span>
+    </div>
+    <div class="flex items-center gap-6">
+      <div>SESSION TTL: <span id="session-countdown"
+          style="color:#ffb800;font-weight:bold;text-shadow:0 0 6px rgba(255,184,0,0.3)">08:00:00</span></div>
+      <button onclick="Auth.logout()"
+        style="color:#ff2e9a;border:1px solid rgba(255,46,154,0.3);padding:2px 8px;border-radius:4px;background:rgba(255,46,154,0.1);font-weight:bold">LOGOUT</button>
+    </div>
+  </div>
+
+  <!-- Main C2 Header Mesh -->
+  <header role="banner" class="flex justify-between items-center mb-4 shrink-0 p-3 backdrop-blur-md"
+    style="background: rgba(18, 0, 36, 0.4); border: 1px solid rgba(176, 38, 255, 0.2); border-radius: 8px;">
+    <div class="flex items-center gap-3">
+      <div class="w-7 h-7 rounded-md flex items-center justify-center"
+        style="background: linear-gradient(to bottom, rgba(0,229,255,0.15), rgba(10,0,20,0.8)); border: 1px solid rgba(0, 229, 255, 0.4); box-shadow: inset 0 0 8px rgba(0, 229, 255, 0.1);">
+        <div class="w-2 h-2 rounded-full animate-pulse" style="background:#00e5ff;box-shadow:0 0 6px #00e5ff"></div>
+      </div>
+      <div>
+        <h1 class="text-sm font-bold tracking-wider uppercase" style="color:#e0d0ff">Sentinel <span
+            style="color:#00e5ff;text-shadow:0 0 8px rgba(0,229,255,0.5)">Tactical Hub</span></h1>
+        <p class="text-[9px] uppercase font-mono font-medium" style="color:rgba(176,38,255,0.6)">Agentic Core OS System
+          v2.6.0</p>
+      </div>
+    </div>
+
+    <!-- System Status Badge + Theme Toggle (F3) -->
+    <div class="flex items-center gap-4 text-xs font-mono">
+      <div class="px-3 py-1.5 rounded-lg flex items-center gap-2"
+        style="background: rgba(10, 0, 20, 0.8); border: 1px solid rgba(176, 38, 255, 0.2);" aria-live="polite"
+        aria-atomic="true">
+        <span class="text-[10px]" style="color:rgba(176,38,255,0.6)">EVENT_LOOP:</span>
+        <span id="connText" class="font-bold" style="color:#e0d0ff">DISCONNECTED</span>
+        <span id="connDot" class="w-2 h-2 rounded-full" style="background:#ff2e9a;box-shadow:0 0 8px #ff2e9a"
+          aria-hidden="true"></span>
+      </div>
+      <button id="themeToggle" aria-label="Toggle dark/light theme" title="Toggle theme (Shift+T)"
+        tabindex="0">🌙</button>
+    </div>
+  </header>
+
+  <!-- Master Control Grid -->
+  <main role="main" class="flex-1 grid grid-command min-h-0">
+
+    <!-- SECTION 1: SYSTEM CORE TELEMETRY MATRIX (Left Sidebar - 3 Columns) -->
+    <section aria-label="System telemetry" class="col-span-12 xl:col-span-3 flex flex-col gap-4 min-h-0">
+
+      <!-- Telemetry Hardware Cluster — Hexagon cards with radial gauges -->
+      <div class="grid grid-cols-2 gap-3 shrink-0" id="telemetryGrid">
+        <div class="metric-panel" id="cardCpu" style="border-left: 2px solid rgba(0, 229, 255, 0.4)">
+          <div class="metric-title"><span class="w-1.5 h-1.5 rounded-full"
+              style="background:#00e5ff;box-shadow:0 0 4px #00e5ff"></span>CPU Usage</div>
+          <div class="flex items-center gap-2 mt-1">
+            <div class="gauge-wrap">
+              <svg width="72" height="72" viewBox="0 0 72 72">
+                <circle class="gauge-bg" cx="36" cy="36" r="30" fill="none" stroke-width="4" />
+                <circle id="gaugeCpu" class="gauge-fill" cx="36" cy="36" r="30" fill="none" stroke="#00e5ff"
+                  stroke-width="4" stroke-dasharray="188.5" stroke-dashoffset="188.5" transform="rotate(-90 36 36)"
+                  style="filter: drop-shadow(0 0 4px rgba(0, 229, 255, 0.6))" />
+              </svg>
+              <div class="gauge-label" id="gaugeCpuLabel">--%</div>
+            </div>
+          </div>
+        </div>
+        <div class="metric-panel" id="cardRam" style="border-left: 2px solid rgba(176, 38, 255, 0.4)">
+          <div class="metric-title"><span class="w-1.5 h-1.5 rounded-full"
+              style="background:#b026ff;box-shadow:0 0 4px #b026ff"></span>RAM Load</div>
+          <div class="metric-value" id="valRam">--%</div>
+        </div>
+        <div class="metric-panel" id="cardVram" style="border-left: 2px solid rgba(255, 46, 154, 0.4)">
+          <div class="metric-title"><span class="w-1.5 h-1.5 rounded-full"
+              style="background:#ff2e9a;box-shadow:0 0 4px #ff2e9a"></span>VRAM Allocation</div>
+          <div class="flex items-center gap-2 mt-1">
+            <div class="gauge-wrap">
+              <svg width="72" height="72" viewBox="0 0 72 72">
+                <circle class="gauge-bg" cx="36" cy="36" r="30" fill="none" stroke-width="4" />
+                <circle id="gaugeVram" class="gauge-fill" cx="36" cy="36" r="30" fill="none" stroke="#ff2e9a"
+                  stroke-width="4" stroke-dasharray="188.5" stroke-dashoffset="188.5" transform="rotate(-90 36 36)"
+                  style="filter: drop-shadow(0 0 4px rgba(255, 46, 154, 0.6))" />
+              </svg>
+              <div class="gauge-label" id="gaugeVramLabel"
+                style="color:#ff2e9a;text-shadow:0 0 6px rgba(255, 46, 154, 0.4)">--%</div>
+            </div>
+          </div>
+        </div>
+        <div class="metric-panel" id="cardDisk" style="border-left: 2px solid rgba(57, 255, 20, 0.4)">
+          <div class="metric-title"><span class="w-1.5 h-1.5 rounded-full"
+              style="background:#39ff14;box-shadow:0 0 4px #39ff14"></span>Storage Free</div>
+          <div class="metric-value" id="valDisk" style="color:#39ff14;text-shadow:0 0 8px rgba(57, 255, 20, 0.4)">-- GB
+          </div>
+        </div>
+      </div>
+
+      <!-- Cognitive LLM Infrastructure Matrix (RSS, TPOT, KV Cache) -->
+      <div class="bg-slate-900/30 border border-slate-800/80 rounded-xl p-4 flex flex-col gap-3 shrink-0">
+        <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+          <span class="w-1 h-3 bg-cyan-500 rounded-sm"></span>Inference Engine Spec
+        </h3>
+        <div class="grid grid-cols-3 gap-2 text-center font-mono">
+          <div class="bg-slate-950/60 p-2 border border-slate-800/50 rounded-lg">
+            <span class="block text-[9px] text-slate-500 uppercase">Process RSS</span>
+            <span class="text-xs font-bold text-slate-200" id="metaRss">-- MB</span>
+          </div>
+          <div class="bg-slate-950/60 p-2 border border-slate-800/50 rounded-lg">
+            <span class="block text-[9px] text-slate-500 uppercase">EMA TPOT</span>
+            <span class="text-xs font-bold text-cyan-400" id="metaTpot">-- t/s</span>
+          </div>
+          <div class="bg-slate-950/60 p-2 border border-slate-800/50 rounded-lg">
+            <span class="block text-[9px] text-slate-500 uppercase">Ctx Sat</span>
+            <span class="text-xs font-bold text-emerald-400" id="metaKv">--%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live telemetry charts — real values + Z-Score deviation -->
+      <div class="flex-1 flex flex-col min-h-0 gap-3">
+        <!-- Real values chart (CPU% / RAM%) -->
+        <div class="p-3 flex flex-col shadow-lg"
+          style="background: rgba(18,0,36,0.6); border: 1px solid rgba(0,229,255,0.2); border-radius: 8px; flex: 1 1 0; min-height: 220px;">
+          <h2 class="text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5"
+            style="color:#00e5ff;text-shadow:0 0 6px rgba(0,229,255,0.3)">
+            <span class="w-1.5 h-1.5 rounded-full animate-ping"
+              style="background:#00e5ff;box-shadow:0 0 4px #00e5ff"></span>Live Telemetry — CPU / RAM
+          </h2>
+          <div class="relative w-full" style="flex: 1 1 0; min-height: 170px;">
+            <canvas id="liveChart"></canvas>
+          </div>
+        </div>
+        <!-- Z-Score deviation chart -->
+        <div class="p-3 flex flex-col shadow-lg"
+          style="background: rgba(18,0,36,0.6); border: 1px solid rgba(176,38,255,0.2); border-radius: 8px; flex: 1 1 0; min-height: 220px;">
+          <h2 class="text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5"
+            style="color:#b026ff;text-shadow:0 0 6px rgba(176,38,255,0.3)">
+            <span class="w-1.5 h-1.5 rounded-full animate-ping"
+              style="background:#b026ff;box-shadow:0 0 4px #b026ff"></span>Z-Score Statistical Deviation
+          </h2>
+          <div class="relative w-full" style="flex: 1 1 0; min-height: 170px;">
+            <canvas id="zChart"></canvas>
+          </div>
+          <div id="status" class="text-[9px] font-mono mt-1 text-right" style="color:rgba(176,38,255,0.5)">Awaiting data
+            cycle...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: COGNITIVE STATE MACHINE Graph & PLANNED DAG (Center - 4 Columns) -->
+    <section aria-label="Cognitive state machine and DAG" class="col-span-12 xl:col-span-4 flex flex-col gap-4 min-h-0">
+
+      <!-- FSM Orchestrator State Tracker -->
+      <div class="bg-slate-900/30 border border-slate-800/80 rounded-xl p-4 shrink-0 shadow-md" id="huntPanel">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>Threat Hunter Status
+          </h2>
+          <span id="huntState"
+            class="px-2 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider bg-slate-800 text-slate-400 border border-slate-700">IDLE</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-xs font-mono">
+          <div class="flex justify-between border-b border-slate-800/40 pb-1.5">
+            <span class="text-slate-500">Anomaly Index:</span>
+            <span id="huntScore" class="font-bold text-slate-200">--</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-800/40 pb-1.5">
+            <span class="text-slate-500">Total Hunts:</span>
+            <span id="huntCount" class="font-bold text-slate-300">--</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-800/40 pb-1.5 col-span-2">
+            <span class="text-slate-500">Last Runtime Execution:</span>
+            <span id="huntLastRun" class="text-slate-300">--</span>
+          </div>
+          <div class="flex justify-between col-span-2">
+            <span class="text-slate-500">Next Scheduled Scan Loop:</span>
+            <span id="huntNextRun" class="text-cyan-400 font-bold">--</span>
+          </div>
+        </div>
+        <div id="huntSkipReason"
+          class="text-[9px] font-mono text-slate-400 mt-3 p-2 rounded bg-slate-950/60 border border-slate-800/60 hidden">
+        </div>
+      </div>
+
+      <!-- Real-Time Topologically Sorted DAG Node Map View -->
+      <div class="bg-slate-900/30 border border-slate-800/80 rounded-xl p-4 flex-1 flex flex-col min-h-0 shadow-lg">
+        <div class="flex justify-between items-center mb-2 shrink-0">
+          <h2 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 bg-cyan-400 rounded-full"></span>Topological Action DAG
+          </h2>
+          <span id="dagSession" class="font-mono text-[10px] text-slate-600 tracking-tighter"></span>
+        </div>
+        <div id="dagNetwork"
+          class="flex-1 rounded-lg border border-slate-950 bg-slate-950/90 relative overflow-hidden min-h-[180px]">
+        </div>
+        <div id="dagEmpty"
+          class="absolute inset-0 m-auto flex items-center justify-center text-slate-600 text-xs italic pointer-events-none">
+          No active reasoning DAG tracing.</div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: THREAT FEED & REAL-TIME INCIDENT FEED (Right - 5 Columns) -->
+    <section aria-label="Incident triage feed"
+      class="col-span-12 xl:col-span-5 bg-slate-900/30 border border-slate-800/80 rounded-xl flex flex-col min-h-0 shadow-xl overflow-hidden">
+      <div class="p-4 border-b border-slate-800/80 bg-slate-900/50 flex justify-between items-center shrink-0">
+        <h2 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 bg-rose-500 rounded-full" aria-hidden="true"></span>Incident Triage Feed
+        </h2>
+        <span
+          class="text-[9px] font-mono font-medium text-slate-500 bg-slate-950 border border-slate-800 px-2 py-0.5 rounded">24H
+          Window</span>
+      </div>
+
+      <!-- Virtual-DOM style Fragment Buffer Container Table -->
+      <div class="flex-1 overflow-auto">
+        <table class="w-full border-collapse text-left" aria-label="Recent security incidents">
+          <thead
+            class="sticky top-0 bg-slate-900/95 backdrop-blur z-10 border-b border-slate-800 font-mono text-[9px] text-slate-500 uppercase tracking-wider">
+            <tr>
+              <th class="py-2.5 px-3 font-semibold">Timestamp</th>
+              <th class="py-2.5 px-2 font-semibold text-center">Severity</th>
+              <th class="py-2.5 px-2 font-semibold">Category</th>
+              <th class="py-2.5 px-2 font-semibold text-right">Metric</th>
+              <th class="py-2.5 px-3 font-semibold">Context Reason / Alert Logs</th>
+              <th class="py-2.5 px-3 font-semibold text-right">Action Gateway</th>
+            </tr>
+          </thead>
+          <tbody id="threatsBody" class="divide-y divide-slate-800/30 text-xs">
+            <tr>
+              <td colspan="6" class="text-center py-12 text-slate-600 italic font-sans">Awaiting telemetry pipeline
+                synchronization...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Hardened Frontend Engine JavaScript Logic -->
+  <script>
+    // === SENTINEL WEB C2 AUTH ENGINE ===
+    let _sse = null;  // SSE connection — hoisted to top for early access
+    let _refreshInterval = null;
+    let _countdownInterval = null;
+
+    const Auth = {
+      getToken: () => localStorage.getItem('c2_bearer_token'),
+      setToken: (token) => localStorage.setItem('c2_bearer_token', token),
+      clearToken: () => {
+        localStorage.removeItem('c2_bearer_token');
+        localStorage.removeItem('c2_token_expiry');
+      },
+
+      lockDashboard: () => {
+        Auth.clearToken();
+        document.getElementById('auth-overlay').classList.remove('hidden');
+        document.getElementById('c2-status-bar').classList.add('hidden');
+        if (_sse) { try { _sse.close(); } catch (e) { } }
+        if (_countdownInterval) clearInterval(_countdownInterval);
+        if (_refreshInterval) clearInterval(_refreshInterval);
+      },
+
+      login: async (user, pass) => {
+        const errDiv = document.getElementById('auth-error');
+        errDiv.classList.add('hidden');
+        try {
+          const basicAuth = btoa(`${user}:${pass}`);
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Authorization': `Basic ${basicAuth}` }
+          });
+          if (!response.ok) throw new Error('Unauthorized');
+          const data = await response.json();
+          Auth.setToken(data.token);
+          localStorage.setItem('c2_token_expiry', String(Date.now() + data.expires_in * 1000));
+          document.getElementById('auth-overlay').classList.add('hidden');
+          document.getElementById('c2-status-bar').classList.remove('hidden');
+          startSessionTimer();
+          refreshAll();
+          _refreshInterval = setInterval(refreshAll, 30000);
+          connectSSE();
+        } catch (err) {
+          errDiv.textContent = '[!] AUTHORIZATION FAILED';
+          errDiv.classList.remove('hidden');
+        }
+      },
+
+      logout: async () => {
+        const token = Auth.getToken();
+        if (token) {
+          try {
+            await fetch('/api/auth/logout', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+          } catch (e) { }
+        }
+        Auth.lockDashboard();
+      }
+    };
+
+    // Centralized fetch with Bearer token injection + 401 auto-lock
+    async function secureFetch(url, options = {}) {
+      const token = Auth.getToken();
+      if (!token) { Auth.lockDashboard(); throw new Error('Token missing'); }
+      const secureOptions = {
+        ...options,
+        headers: {
+          ...(options.headers || {}),
+          'Authorization': `Bearer ${token}`
+        }
+      };
+      const response = await fetch(url, secureOptions);
+      if (response.status === 401 || response.status === 403) {
+        Auth.lockDashboard();
+        throw new Error('Session invalidated');
+      }
+      return response;
+    }
+
+    // Session countdown timer
+    function startSessionTimer() {
+      if (_countdownInterval) clearInterval(_countdownInterval);
+      const expiry = parseInt(localStorage.getItem('c2_token_expiry') || '0');
+      const timerSpan = document.getElementById('session-countdown');
+      _countdownInterval = setInterval(() => {
+        const remaining = expiry - Date.now();
+        if (remaining <= 0) { Auth.lockDashboard(); return; }
+        const h = String(Math.floor(remaining / 3600000)).padStart(2, '0');
+        const m = String(Math.floor((remaining % 3600000) / 60000)).padStart(2, '0');
+        const s = String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0');
+        timerSpan.textContent = `${h}:${m}:${s}`;
+      }, 1000);
+    }
+
+    // Login form submission
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('login-form');
+      if (form) {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          Auth.login(
+            document.getElementById('auth-user').value,
+            document.getElementById('auth-pass').value
+          );
+        });
+      }
+    });
+
+    // Pure Cache Object to keep tracks of previous element contents and minimize DOM touches
+    const _DOMCache = new Map();
+    function updateTextCached(id, nextVal) {
+      if (_DOMCache.get(id) !== nextVal) {
+        const el = document.getElementById(id);
+        if (el) { el.textContent = nextVal; _DOMCache.set(id, nextVal); }
+      }
+    }
+
+    const fmtTime = (d) => _parseTs(d).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const fmtDateTime = (d) => { const t = _parseTs(d); return t.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' }) + ' ' + t.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) };
+
+    function _parseTs(d) {
+      const s = String(d || '');
+      if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(s)) return new Date(s.replace(' ', 'T'));
+      const m = s.match(/^(\d{2})\/(\d{2}) (\d{2}):(\d{2})$/);
+      if (m) { const now = new Date(); return new Date(now.getFullYear(), parseInt(m[2]) - 1, parseInt(m[1]), parseInt(m[3]), parseInt(m[4])); }
+      const fallback = new Date(s);
+      return isNaN(fallback) ? new Date(0) : fallback;
+    }
+
+    let connected = false;
+    function setConn(ok) {
+      if (connected === ok) return;
+      connected = ok;
+      const dot = document.getElementById('connDot');
+      const txt = document.getElementById('connText');
+      if (dot && txt) {
+        if (ok) {
+          dot.style.background = '#39ff14';
+          dot.style.boxShadow = '0 0 8px #39ff14';
+          txt.style.color = '#39ff14';
+          txt.style.textShadow = '0 0 6px rgba(57,255,20,0.4)';
+        } else {
+          dot.style.background = '#ff2e9a';
+          dot.style.boxShadow = '0 0 8px #ff2e9a';
+          txt.style.color = '#ff2e9a';
+          txt.style.textShadow = '0 0 6px rgba(255,46,154,0.4)';
+        }
+        txt.textContent = ok ? 'CONNECTED' : 'DISCONNECTED';
+      }
+    }
+
+    // High Performance Telemetry Render Loop via DocumentFragment Cache Switching
+    async function loadHealth() {
+      try {
+        const r = await secureFetch('/api/health');
+        const d = await r.json();
+        if (d.status !== 'ok') throw new Error(d.error || 'unknown');
+
+        // CPU radial gauge + critical glow
+        const cpuPct = d.cpu;
+        const cpuCircumference = 188.5;
+        const cpuOffset = cpuCircumference - (cpuPct / 100) * cpuCircumference;
+        const cpuGauge = document.getElementById('gaugeCpu');
+        const cpuLabel = document.getElementById('gaugeCpuLabel');
+        if (cpuGauge) { cpuGauge.setAttribute('stroke-dashoffset', cpuOffset); }
+        if (cpuLabel) {
+          cpuLabel.textContent = cpuPct.toFixed(1) + '%';
+          cpuLabel.className = 'gauge-label' + (cpuPct > 85 ? ' critical' : cpuPct > 65 ? ' warning' : '');
+        }
+
+        // RAM (text value + critical glow)
+        const ramEl = document.getElementById('valRam');
+        if (ramEl) {
+          ramEl.textContent = d.ram_percent + '%';
+          ramEl.className = 'metric-value' + (d.ram_percent > 85 ? ' critical' : d.ram_percent > 65 ? ' warning' : '');
+        }
+
+        // VRAM radial gauge + critical glow
+        const vramPct = (typeof d.percent === 'number') ? d.percent : 0;
+        const vramOffset = cpuCircumference - (vramPct / 100) * cpuCircumference;
+        const vramGauge = document.getElementById('gaugeVram');
+        const vramLabel = document.getElementById('gaugeVramLabel');
+        if (vramGauge) { vramGauge.setAttribute('stroke-dashoffset', vramOffset); }
+        if (vramLabel) {
+          vramLabel.textContent = vramPct ? vramPct.toFixed(1) + '%' : 'N/A';
+          vramLabel.className = 'gauge-label' + (vramPct > 90 ? ' critical' : vramPct > 75 ? ' warning' : '');
+          if (vramPct > 90) vramLabel.style.color = '#ff2e9a';
+          else if (vramPct > 75) vramLabel.style.color = '#ffb800';
+          else vramLabel.style.color = '#ff2e9a';
+        }
+
+        // Disk (text value)
+        updateTextCached('valDisk', d.disk_free_gb + ' GB');
+
+        // Inference engine telemetry — real values from Telemetry.snapshot()
+        if (d.process_rss_mb !== undefined) updateTextCached('metaRss', d.process_rss_mb + ' MB');
+        if (d.tpot_tps !== undefined) updateTextCached('metaTpot', d.tpot_tps.toFixed(1) + ' t/s');
+        if (d.ctx_sat_pct !== undefined) updateTextCached('metaKv', d.ctx_sat_pct.toFixed(1) + '%');
+
+        setConn(true);
+      } catch (e) { setConn(false); }
+    }
+
+    async function loadMetrics() {
+      try {
+        const r = await secureFetch('/api/metrics');
+        const data = await r.json();
+        const allTimes = [...new Set(data.map(r => fmtTime(r.timestamp)))].sort().slice(-20);
+        const byMetric = {};
+        const byValue = {};
+        data.forEach(row => {
+          if (!byMetric[row.metric]) byMetric[row.metric] = {};
+          if (!byValue[row.metric]) byValue[row.metric] = {};
+          byMetric[row.metric][fmtTime(row.timestamp)] = row.z_score;
+          byValue[row.metric][fmtTime(row.timestamp)] = row.value;
+        });
+
+        // Z-Score chart — neon colors with glow
+        const zColors = { cpu: '#00e5ff', ram: '#b026ff', disk: '#39ff14', net: '#ff2e9a' };
+        const zDatasets = Object.keys(byMetric).map((m) => ({
+          label: m,
+          data: allTimes.map(t => byMetric[m][t] !== undefined ? byMetric[m][t] : null),
+          borderColor: zColors[m] || '#7df9ff',
+          backgroundColor: (zColors[m] || '#7df9ff') + '25',
+          tension: 0.4,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          borderWidth: 3,
+          fill: true,
+          spanGaps: true
+        }));
+        window.zChart.data.labels = allTimes;
+        window.zChart.data.datasets = zDatasets;
+        window.zChart.update();
+
+        // Live values chart — CPU% / RAM% real values
+        if (window.liveChart) {
+          const liveDatasets = Object.keys(byValue).map((m) => ({
+            label: m + ' (%)',
+            data: allTimes.map(t => byValue[m][t] !== undefined ? byValue[m][t] : null),
+            borderColor: zColors[m] || '#7df9ff',
+            backgroundColor: (zColors[m] || '#7df9ff') + '30',
+            tension: 0.4,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            borderWidth: 3,
+            fill: true,
+            spanGaps: true
+          }));
+          window.liveChart.data.labels = allTimes;
+          window.liveChart.data.datasets = liveDatasets;
+          window.liveChart.update();
+        }
+
+        document.getElementById('status').textContent = 'Pipeline Active Sync: ' + new Date().toLocaleTimeString();
+        setConn(true);
+      } catch (e) { setConn(false); }
+    }
+
+    function severityBadge(report, trigger, current, category) {
+      const r = (report || '').toLowerCase(), t = (trigger || '').toLowerCase();
+      if (t.includes('override') || r.includes('override')) return '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30 uppercase tracking-tighter">CRIT_OVERRIDE</span>';
+      if (r.includes('critical') || r.includes('גבוה') || r.includes('high')) return '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20">HIGH</span>';
+      if (r.includes('warn') || r.includes('medium') || r.includes('moderate')) return '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">WARN</span>';
+      return '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">INFO</span>';
+    }
+
+    async function sendCommand(cmd, target) {
+      if (!confirm(`Deploy structural override mitigation: [${cmd}] against PID [${target}]?`)) return;
+      try {
+        const r = await secureFetch('/api/command', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ command: cmd, target: target })
+        });
+        const d = await r.json();
+        if (d.status === 'success') { toast('Command dispatched: ' + d.message, 'success'); refreshAll(); }
+        else { toast('Gateway Execution Interrupted: ' + d.error, 'error'); }
+      } catch (e) { toast('Network Failure: ' + e.message, 'error'); }
+    }
+
+    let lastTimestamp = 0;
+    let threatsInitialized = false;
+
+    function threatRowHTML(t) {
+      const cat = (t.category || '-').toString().toUpperCase();
+      const trig = String(t.trigger).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const reason = String(t.reason || t.report).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const pid = t.pid || null;
+      const actionBtn = pid ? `<button class="px-2 py-1 font-mono text-[9px] font-bold bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white rounded border border-rose-500/30 transition-all active:scale-95 uppercase tracking-tighter" onclick="sendCommand('kill_process', '${pid}')" aria-label="Kill process ${pid}" title="Kill PID ${pid}">KILL_${pid}</button>` : '<span class="text-slate-600 font-mono" aria-label="No action available">-</span>';
+
+      return `<tr class="live-row-update border-b border-slate-900 hover:bg-slate-900/40 transition-colors">`
+        + `<td class="py-2 px-3 font-mono text-[11px] text-slate-400">${fmtDateTime(t.time)}</td>`
+        + `<td class="py-2 px-2 text-center">${severityBadge(t.report, t.trigger, t.current, t.category)}</td>`
+        + `<td class="py-2 px-2 font-mono text-[11px] tracking-tight text-slate-300 font-semibold">${cat}</td>`
+        + `<td class="py-2 px-2 font-mono text-slate-400 text-right font-medium">${typeof t.current === 'number' ? t.current.toFixed(1) + '%' : '-'}</td>`
+        + `<td class="py-2 px-3 max-w-[280px] truncate text-slate-400 text-[11px]" title="${trig} | ${reason}">${reason}</td>`
+        + `<td class="py-2 px-3 text-right">${actionBtn}</td>`
+        + `</tr>`;
+    }
+
+    async function loadThreats() {
+      try {
+        // First load: fetch without `since` (backend defaults to 50 rows, not 100).
+        // Subsequent polls: use `since` for incremental delta (new alerts only).
+        const url = threatsInitialized ? '/api/threats?since=' + lastTimestamp : '/api/threats';
+        const r = await secureFetch(url);
+        const data = await r.json();
+        const tbody = document.getElementById('threatsBody');
+
+        if (data.length) {
+          // Cap initial render to 30 rows — older history is not actionable in real-time.
+          const renderRows = threatsInitialized ? data : data.slice(0, 30);
+          const frag = document.createDocumentFragment();
+          const tempDiv = document.createElement('table');
+          tempDiv.innerHTML = renderRows.map(threatRowHTML).join('');
+
+          while (tempDiv.rows.length > 0) {
+            frag.appendChild(tempDiv.rows[0]);
+          }
+
+          if (!threatsInitialized) { tbody.innerHTML = ''; threatsInitialized = true; }
+          tbody.insertBefore(frag, tbody.firstChild);
+
+          // Always update lastTimestamp from the newest row in the full response.
+          const newest = Math.max(...data.map(t => _parseTs(t.time).getTime() / 1000));
+          if (newest > lastTimestamp) lastTimestamp = newest;
+        } else if (!threatsInitialized) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center py-12 text-slate-500 italic font-mono text-[11px]">Baseline Nominal. Zero Anomalies Exposed.</td></tr>';
+          threatsInitialized = true;
+        }
+        setConn(true);
+      } catch (e) { setConn(false); }
+    }
+
+    async function loadHuntStatus() {
+      try {
+        const r = await secureFetch('/api/threat_hunter/status');
+        const d = await r.json();
+        const stateEl = document.getElementById('huntState');
+        const state = (d.state || 'IDLE').toLowerCase();
+
+        stateEl.textContent = d.state || 'IDLE';
+        stateEl.className = `px-2 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider border ${state === 'scanning' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : state === 'analyzing' ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20 animate-pulse' : 'bg-slate-800 text-slate-500 border-slate-700'}`;
+
+        document.getElementById('huntLastRun').textContent = d.last_run_iso ? fmtDateTime(d.last_run_iso) : 'NEVER';
+        document.getElementById('huntCount').textContent = d.hunt_count || 0;
+
+        const score = d.last_score !== undefined ? d.last_score.toFixed(2) : '--';
+        const scoreEl = document.getElementById('huntScore');
+        scoreEl.textContent = score;
+        scoreEl.className = `font-bold font-mono ${d.last_score >= 0.75 ? 'text-rose-500' : d.last_score >= 0.5 ? 'text-amber-500' : 'text-emerald-400'}`;
+
+        if (d.seconds_until_next >= 0) {
+          const m = Math.floor(d.seconds_until_next / 60);
+          const s = Math.floor(d.seconds_until_next % 60);
+          document.getElementById('huntNextRun').textContent = `${m}m ${s}s`;
+        } else {
+          document.getElementById('huntNextRun').textContent = 'WAIT_CYCLE';
+        }
+
+        const skipEl = document.getElementById('huntSkipReason');
+        if (d.last_skip_reason) {
+          skipEl.textContent = 'Skip Cause: ' + d.last_skip_reason;
+          skipEl.classList.remove('hidden');
+        } else {
+          skipEl.classList.add('hidden');
+        }
+      } catch (e) { }
+    }
+
+    // Chart.js High Performance Static Baseline Configuration
+    const neonGrid = 'rgba(176, 38, 255, 0.08)';
+    const neonTick = 'rgba(176, 38, 255, 0.5)';
+    const neonLegend = '#e0d0ff';
+
+    // Glow plugin — adds shadow blur to line datasets for neon effect
+    const glowPlugin = {
+      id: 'glow',
+      beforeDatasetDraw(chart, args) {
+        const ds = args.meta.dataset;
+        if (ds && ds.options.borderColor) {
+          chart.ctx.save();
+          chart.ctx.shadowColor = ds.options.borderColor;
+          chart.ctx.shadowBlur = 8;
+        }
+      },
+      afterDatasetDraw(chart) { chart.ctx.restore(); }
+    };
+
+    const ctx = document.getElementById('zChart').getContext('2d');
+    window.zChart = new Chart(ctx, {
+      type: 'line',
+      data: { labels: [], datasets: [] },
+      plugins: [glowPlugin],
+      options: {
+        maintainAspectRatio: false,
+        responsive: true,
+        animation: false,
+        scales: {
+          x: { grid: { color: neonGrid }, ticks: { color: neonTick, font: { size: 8, family: 'monospace' }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 } },
+          y: { grid: { color: neonGrid }, ticks: { color: neonTick, font: { size: 8, family: 'monospace' } }, suggestedMin: -3, suggestedMax: 3 }
+        },
+        plugins: { legend: { display: true, position: 'top', labels: { color: neonLegend, font: { size: 9, family: 'monospace' }, boxWidth: 12, boxHeight: 2 } } }
+      }
+    });
+
+    // Live values chart — CPU% / RAM% real values
+    const liveCtx = document.getElementById('liveChart').getContext('2d');
+    window.liveChart = new Chart(liveCtx, {
+      type: 'line',
+      data: { labels: [], datasets: [] },
+      plugins: [glowPlugin],
+      options: {
+        maintainAspectRatio: false,
+        responsive: true,
+        animation: false,
+        scales: {
+          x: { grid: { color: 'rgba(176,38,255,0.12)' }, ticks: { color: 'rgba(176,38,255,0.6)', font: { size: 8, family: 'monospace' }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 } },
+          y: { grid: { color: 'rgba(176,38,255,0.12)' }, ticks: { color: 'rgba(176,38,255,0.6)', font: { size: 8, family: 'monospace' }, callback: (v) => v.toFixed(0) + '%' }, autoSkip: true, maxTicksLimit: 5, beginAtZero: true }
+        },
+        plugins: { legend: { display: true, position: 'top', labels: { color: '#e0d0ff', font: { size: 9, family: 'monospace' }, boxWidth: 12, boxHeight: 2 } } }
+      }
+    });
+
+    function refreshAll() { loadHealth(); loadHuntStatus(); loadMetrics(); loadThreats(); }
+
+    // Auto-init: start dashboard pipelines only if already authenticated
+    if (Auth.getToken()) {
+      document.getElementById('auth-overlay').classList.add('hidden');
+      document.getElementById('c2-status-bar').classList.remove('hidden');
+      startSessionTimer();
+      refreshAll();
+      _refreshInterval = setInterval(refreshAll, 30000);
+      connectSSE();
+    }
+
+    // SSE Stream Controller — token passed via query string (EventSource can't set headers)
+    function connectSSE() {
+      const token = Auth.getToken();
+      if (!token) return;
+      try { if (_sse) _sse.close(); } catch (e) { }
+      _sse = new EventSource('/api/events?token=' + encodeURIComponent(token));
+      _sse.onopen = () => setConn(true);
+      _sse.onerror = () => {
+        setConn(false);
+        try { _sse.close(); } catch (e) { }
+        // Check if token expired before reconnecting
+        if (Auth.getToken()) setTimeout(connectSSE, 5000);
+      };
+      _sse.addEventListener('alert', handleLiveEvent);
+      _sse.addEventListener('critical_override', handleLiveEvent);
+      _sse.addEventListener('dag_update', handleDagEvent);
+      _sse.addEventListener('telemetry', handleTelemetryEvent);
+    }
+
+    function handleLiveEvent(evt) {
+      loadThreats();
+    }
+
+    // Real-time telemetry from SSE — updates gauges + charts without polling
+    // EMA smoothing (alpha=0.3) to prevent jittery values
+    const _ema = { cpu: 0, ram: 0, vram: 0, tpot: 0, ctxSat: 0, rss: 0, init: false };
+    const _EMA_ALPHA = 0.3;
+
+    function handleTelemetryEvent(evt) {
+      try {
+        const d = JSON.parse(evt.data);
+        if (d.status !== 'ok') return;
+
+        // Initialize EMA on first sample
+        if (!_ema.init) {
+          _ema.cpu = d.cpu; _ema.ram = d.ram_percent;
+          _ema.vram = (typeof d.percent === 'number') ? d.percent : 0;
+          _ema.tpot = d.tpot_tps || 0; _ema.ctxSat = d.ctx_sat_pct || 0;
+          _ema.rss = d.process_rss_mb || 0; _ema.init = true;
+        } else {
+          _ema.cpu = _EMA_ALPHA * d.cpu + (1 - _EMA_ALPHA) * _ema.cpu;
+          _ema.ram = _EMA_ALPHA * d.ram_percent + (1 - _EMA_ALPHA) * _ema.ram;
+          _ema.vram = _EMA_ALPHA * ((typeof d.percent === 'number') ? d.percent : 0) + (1 - _EMA_ALPHA) * _ema.vram;
+          _ema.tpot = _EMA_ALPHA * (d.tpot_tps || 0) + (1 - _EMA_ALPHA) * _ema.tpot;
+          _ema.ctxSat = _EMA_ALPHA * (d.ctx_sat_pct || 0) + (1 - _EMA_ALPHA) * _ema.ctxSat;
+          _ema.rss = _EMA_ALPHA * (d.process_rss_mb || 0) + (1 - _EMA_ALPHA) * _ema.rss;
+        }
+
+        const cpuPct = _ema.cpu;
+        const cpuCircumference = 188.5;
+        const cpuOffset = cpuCircumference - (cpuPct / 100) * cpuCircumference;
+        const cpuGauge = document.getElementById('gaugeCpu');
+        const cpuLabel = document.getElementById('gaugeCpuLabel');
+        if (cpuGauge) { cpuGauge.setAttribute('stroke-dashoffset', cpuOffset); }
+        if (cpuLabel) {
+          cpuLabel.textContent = cpuPct.toFixed(1) + '%';
+          cpuLabel.className = 'gauge-label' + (cpuPct > 85 ? ' critical' : cpuPct > 65 ? ' warning' : '');
+        }
+
+        // RAM
+        const ramEl = document.getElementById('valRam');
+        if (ramEl) {
+          ramEl.textContent = _ema.ram.toFixed(0) + '%';
+          ramEl.className = 'metric-value' + (_ema.ram > 85 ? ' critical' : _ema.ram > 65 ? ' warning' : '');
+        }
+
+        // VRAM radial gauge
+        const vramPct = _ema.vram;
+        const vramOffset = cpuCircumference - (vramPct / 100) * cpuCircumference;
+        const vramGauge = document.getElementById('gaugeVram');
+        const vramLabel = document.getElementById('gaugeVramLabel');
+        if (vramGauge) { vramGauge.setAttribute('stroke-dashoffset', vramOffset); }
+        if (vramLabel) {
+          vramLabel.textContent = vramPct ? vramPct.toFixed(1) + '%' : 'N/A';
+          vramLabel.className = 'gauge-label' + (vramPct > 90 ? ' critical' : vramPct > 75 ? ' warning' : '');
+        }
+
+        // Disk
+        updateTextCached('valDisk', d.disk_free_gb + ' GB');
+
+        // Inference engine
+        if (d.process_rss_mb !== undefined) updateTextCached('metaRss', _ema.rss.toFixed(0) + ' MB');
+        if (d.tpot_tps !== undefined) updateTextCached('metaTpot', _ema.tpot.toFixed(1) + ' t/s');
+        if (d.ctx_sat_pct !== undefined) updateTextCached('metaKv', _ema.ctxSat.toFixed(1) + '%');
+
+        // Push smoothed data point to live chart (rolling window 40 pts)
+        if (window.liveChart) {
+          const now = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          const labels = window.liveChart.data.labels;
+          const dsCpu = window.liveChart.data.datasets.find(ds => ds.label === 'cpu (%)');
+          const dsRam = window.liveChart.data.datasets.find(ds => ds.label === 'ram (%)');
+          if (dsCpu) { dsCpu.data.push(cpuPct); if (dsCpu.data.length > 40) dsCpu.data.shift(); }
+          if (dsRam) { dsRam.data.push(_ema.ram); if (dsRam.data.length > 40) dsRam.data.shift(); }
+          labels.push(now);
+          if (labels.length > 40) labels.shift();
+          window.liveChart.update('none');
+        }
+
+        setConn(true);
+      } catch (e) { /* ignore parse errors */ }
+    }
+
+    let _dagNetwork = null;
+    const _STATUS_COLORS = {
+      pending: { bg: '#0f172a', border: '#334155' },
+      running: { bg: '#7c2d12', border: '#d97706' },
+      done: { bg: '#064e3b', border: '#059669' },
+      failed: { bg: '#4c0519', border: '#dc2626' },
+      blocked: { bg: '#1e1b4b', border: '#4f46e5' }
+    };
+
+    function handleDagEvent(evt) {
+      try {
+        const ev = JSON.parse(evt.data);
+        const data = ev.data || {};
+        const subtasks = data.subtasks || [];
+        if (!subtasks.length) return;
+
+        updateTextCached('dagSession', `[ID: ${data.session_id || 'active'}]`);
+        document.getElementById('dagEmpty').style.display = 'none';
+
+        const nodes = subtasks.map((st, i) => {
+          const colors = _STATUS_COLORS[st.status || 'pending'] || _STATUS_COLORS.pending;
+          return {
+            id: st.id,
+            label: `${st.id}\n(${st.status || 'pending'})`,
+            shape: 'box',
+            color: { background: colors.bg, border: colors.border, highlight: colors.border },
+            font: { color: '#f3f4f6', size: 10, face: 'monospace' },
+            margin: 8
+          };
+        });
+
+        const edges = [];
+        subtasks.forEach(st => {
+          (st.depends_on || []).forEach(dep => {
+            edges.push({ from: String(dep), to: String(st.id), arrows: 'to', color: '#334155', width: 1 });
+          });
+        });
+
+        if (_dagNetwork) {
+          _dagNetwork.setData({ nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) });
+        } else {
+          _dagNetwork = new vis.Network(document.getElementById('dagNetwork'), { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) }, {
+            layout: { hierarchical: { direction: 'LR', sortMethod: 'directed', levelSeparation: 100, nodeSpacing: 60 } },
+            physics: { enabled: false },
+            interaction: { zoomView: true, dragView: true, hover: true }
+          });
+        }
+      } catch (e) { }
+    }
+
+    connectSSE();
+
+    // ── Toast notification system (F2) — non-blocking, replaces alert() ──
+    function toast(message, type = 'info', duration = 4000) {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const icons = { success: '✓', error: '✕', info: 'ℹ' };
+      const el = document.createElement('div');
+      el.className = `toast toast-${type}`;
+      el.setAttribute('role', type === 'error' ? 'alert' : 'status');
+      el.innerHTML = `<span class="toast-icon" aria-hidden="true">${icons[type] || icons.info}</span><span class="toast-msg"></span>`;
+      el.querySelector('.toast-msg').textContent = String(message);
+      container.appendChild(el);
+      const dismiss = () => {
+        el.classList.add('fade-out');
+        setTimeout(() => el.remove(), 300);
+      };
+      el.addEventListener('click', dismiss);
+      setTimeout(dismiss, duration);
+    }
+
+    // ── Theme toggle (F3) — prefers-color-scheme + localStorage persistence ──
+    (function initTheme() {
+      const root = document.documentElement;
+      const btn = document.getElementById('themeToggle');
+      const stored = localStorage.getItem('sentinel-theme');
+      const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+      const useDark = stored ? stored === 'dark' : !prefersLight;
+      root.classList.toggle('dark', useDark);
+      if (btn) btn.textContent = useDark ? '🌙' : '☀️';
+      function toggle() {
+        const isDark = root.classList.toggle('dark');
+        localStorage.setItem('sentinel-theme', isDark ? 'dark' : 'light');
+        if (btn) btn.textContent = isDark ? '🌙' : '☀️';
+        toast(isDark ? 'Dark mode activated' : 'Light mode activated', 'info', 2000);
+      }
+      if (btn) {
+        btn.addEventListener('click', toggle);
+        btn.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+      }
+      document.addEventListener('keydown', e => { if (e.shiftKey && e.key === 'T') toggle(); });
+    })();
+  </script>
+</body>
+
+</html>

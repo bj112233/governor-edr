@@ -1,0 +1,93 @@
+﻿# === Databases (ephemeral, runtime state) ===
+*.db
+*.db-wal
+*.db-shm
+*.sqlite3
+
+# === Testing & Temp scratch ===
+tests/output/
+tests/results/
+tests/debug_out*.txt
+tests/live_*_out*.txt
+.commit_msg.txt
+
+# === Coverage artifacts (baseline is committed, raw data is ephemeral) ===
+.coverage
+coverage.json
+htmlcov/
+query
+output.csv
+*.bak
+
+# === Python cache ===
+__pycache__/
+*.py[cod]
+
+# === Tool baselines (regenerated, not source) ===
+.mypy_baseline.txt
+
+# === Env / venv ===
+.venv/
+.env
+
+# === Devin local config (contains personal paths/permissions) ===
+.devin/config.local.json
+
+# === Editor / tooling state ===
+.windsurf/
+.continue/
+.clawhub/
+
+# === Runtime dirs (ephemeral / personal data) ===
+logs/
+state/
+memory/
+downloads/
+data/
+
+# === Binaries & tooling (not source) ===
+# Keep .py and .ps1 scripts in bin/ (lint-gate, hooks, etc.)
+# Exclude compiled/binary artifacts only
+bin/*.exe
+bin/*.dll
+bin/*.bat
+bin/*.pyc
+bin/*.pyd
+bin/*.so
+bin/*.dylib
+
+# === Skill runtime data (tessdata is downloaded, logs are ephemeral) ===
+skills/file_analyst/tessdata/
+skills/file_analyst/logs/
+
+# === Personal config (contains real MAC / IP / chat_id / name) ===
+config/trusted_devices.json
+config/news_feeds.json
+config/channels.json
+config/persona/USER.md
+
+# === Local gitleaks PII rules (contains real MAC/chat_id/names) ===
+.gitleaks-local.toml
+
+# === Images outside docs/ and static/ (personal screenshots, captures) ===
+/*.jpg
+/*.jpeg
+/*.png
+/**/*.jpg
+/**/*.jpeg
+/**/*.png
+!docs/**/*.jpg
+!docs/**/*.jpeg
+!docs/**/*.png
+!static/**/*.jpg
+!static/**/*.jpeg
+!static/**/*.png
+
+# === Playwright MCP runtime logs ===
+.playwright-mcp/
+
+# === Temp output files ===
+lint_out.txt
+tests_out3.txt
+vt_fail.txt
+

@@ -1,0 +1,90 @@
+{
+  "_comment": "Medical document analysis profiles - Israeli healthcare system",
+  "_category": "medical",
+  "profiles": {
+    "medical_report": {
+      "description": "דוח רפואי - Israel medical system + international",
+      "language": "he",
+      "fields": [
+        {
+          "name": "שם מטופל",
+          "keywords": ["מטופל", "patient", "שם", "name"]
+        },
+        {
+          "name": "תז מטופל",
+          "keywords": ["תז", "ת.ז.", "ID"]
+        },
+        {
+          "name": "תאריך בדיקה",
+          "keywords": ["בדיקה", "examination date", "בתאריך"]
+        },
+        {
+          "name": "רופא מטפל",
+          "keywords": ["רופא", "physician", "dr", "doctor", "מומחה"]
+        },
+        {
+          "name": "מספר רישיון",
+          "keywords": ["רישיון רופא", "license", "מספר רישיון"]
+        },
+        {
+          "name": "אבחנה עיקרית",
+          "keywords": ["אבחנה", "diagnosis", "ICD", "קוד"]
+        },
+        {
+          "name": "סימפטומים",
+          "keywords": ["תסמינים", "symptoms", "תלונות", "complaints"]
+        },
+        {
+          "name": "תוצאות בדיקות",
+          "keywords": ["תוצאות", "results", "ממצאים", "findings"]
+        },
+        {
+          "name": "טיפול מומלץ",
+          "keywords": ["טיפול", "treatment", "prescribed", "מרשם"]
+        },
+        {
+          "name": "מעקב נדרש",
+          "keywords": ["מעקב", "follow-up", "ביקור חוזר"]
+        },
+        {
+          "name": "קופת חולים",
+          "keywords": ["קופה", "kupat", "clalit", "maccabi", "leumit", "meuhedet"]
+        }
+      ]
+    },
+    "lab_results": {
+      "description": "תוצאות בדיקות מעבדה - Israel + international",
+      "language": "he",
+      "fields": [
+        {
+          "name": "תאריך בדיקה",
+          "keywords": ["תאריך", "date collected", "נלקח"]
+        },
+        {
+          "name": "מעבדה",
+          "keywords": ["מעבדה", "laboratory", "lab", "מכבי", "יינון", "הדסה"]
+        },
+        {
+          "name": "סוג בדיקה",
+          "keywords": ["בדיקת", "test", "סוג", "type"]
+        },
+        {
+          "name": "ערכים חריגים",
+          "keywords": ["גבוה", "high", "נמוך", "low", "H", "L", "חריג"]
+        },
+        {
+          "name": "טווח תקין",
+          "keywords": ["טווח", "reference range", "normal", "norm"]
+        },
+        {
+          "name": "יחידות",
+          "keywords": ["יחידות", "units", "mg/dl", "mmol/l", "u/l"]
+        },
+        {
+          "name": "רמת דחיפות",
+          "keywords": ["דחוף", "urgent", "STAT", "critical"]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "telegram": {
+    "enabled": true,
+    "bot_token": "${BOT_TOKEN}",
+    "dm_policy": "allowlist",
+    "allow_from": ["${TELEGRAM_CHAT_ID}"],
+    "group_policy": "disabled",
+    "streaming": "off",
+    "error_policy": "reply",
+    "reaction_level": "minimal"
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "_comment": "Profile index - maps profile names to their category directories",
+  "_version": "1.0.0",
+  "categories": {
+    "contracts": {
+      "path": "contracts/profiles.json",
+      "description": "Legal contracts - rental, employment, purchase, NDA, etc.",
+      "profiles": [
+        "rental_contract",
+        "employment_contract",
+        "vehicle_contract",
+        "purchase_contract",
+        "nda_confidentiality",
+        "power_of_attorney",
+        "will_testament",
+        "mortgage_agreement"
+      ]
+    },
+    "insurance": {
+      "path": "insurance/profiles.json",
+      "description": "Insurance policies - car, home, life, health",
+      "profiles": [
+        "car_insurance_policy",
+        "home_insurance_policy",
+        "life_insurance_policy",
+        "health_insurance_policy"
+      ]
+    },
+    "financial": {
+      "path": "financial/profiles.json",
+      "description": "Financial documents - payslip, bank statement, tax, invoice",
+      "profiles": [
+        "payslip",
+        "bank_statement",
+        "tax_return",
+        "invoice_receipt",
+        "annual_report"
+      ]
+    },
+    "legal": {
+      "path": "legal/profiles.json",
+      "description": "Legal documents - court rulings, legal notices",
+      "profiles": [
+        "court_ruling",
+        "legal_notice"
+      ]
+    },
+    "medical": {
+      "path": "medical/profiles.json",
+      "description": "Medical documents - reports, lab results",
+      "profiles": [
+        "medical_report",
+        "lab_results"
+      ]
+    },
+    "corporate": {
+      "path": "corporate/profiles.json",
+      "description": "Corporate documents - board resolutions, audit reports, certificates",
+      "profiles": [
+        "board_resolution",
+        "audit_report",
+        "academic_transcript",
+        "certificate",
+        "license_permit"
+      ]
+    },
+    "technical": {
+      "path": "technical/profiles.json",
+      "description": "Technical documents - manuals, patents, datasheets",
+      "profiles": [
+        "technical_manual",
+        "patent_document"
+      ]
+    }
+  },
+  "profile_count": 28,
+  "total_size_estimate_kb": 35
+}

@@ -1,0 +1,22 @@
+# YARA Rule Allowlist — suppress false positives without deleting rules.
+#
+# Format:
+#   rule_name:
+#     - hash: sha256_of_file    # suppress by file content hash
+#     - path: /path/to/file     # suppress by exact file path (case-insensitive on Windows)
+#
+# When a YARA match is found, the allowlist is checked BEFORE alerting.
+# If the file matches an allowlist entry for that rule, the match is
+# logged at INFO level (not alerted) and dropped from results.
+#
+# This prevents operators from having to delete rules (losing coverage)
+# when a legitimate file triggers a HIGH severity rule.
+#
+# Example:
+#   Generic_Powershell_Execution:
+#     - path: C:\Tools\AdminToolkit.ps1
+#     - hash: abc123...
+#
+# Leave empty (just this comment) if no allowlist entries are needed.
+
+# ── Entries below ──

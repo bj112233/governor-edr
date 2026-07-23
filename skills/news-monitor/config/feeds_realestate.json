@@ -1,0 +1,33 @@
+{
+  "_comment": "Real estate feeds. Use: news_monitor.py --config config/feeds_realestate.json",
+  "feeds": [
+    {
+      "name": "TheMarker (כולל נדל\"ן)",
+      "url": "https://www.themarker.com/cmlink/1.143",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=themarker.com&sz=128"
+    },
+    {
+      "name": "Globes ראשי",
+      "url": "https://www.globes.co.il/WebService/Rss/RssFeeder.asmx/FeederNode?iID=942",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=globes.co.il&sz=128"
+    }
+  ],
+  "keywords": [
+    "נדל\"ן",
+    "דירה",
+    "שכירות",
+    "מחירי דיור",
+    "משכנתא",
+    "תמ\"א",
+    "פינוי בינוי",
+    "מע\"מ",
+    "מחיר למשתכן",
+    "בנייה",
+    "קבלן",
+    "יזם",
+    "פרויקט"
+  ],
+  "check_interval_minutes": 360
+}

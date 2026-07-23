@@ -1,0 +1,95 @@
+{
+  "_comment": "Legal document analysis profiles - Israeli court and legal notice formats",
+  "_category": "legal",
+  "profiles": {
+    "court_ruling": {
+      "description": "פסק דין - Israel court system (בתי המשפט) + international",
+      "language": "he",
+      "fields": [
+        {
+          "name": "מספר תיק",
+          "keywords": ["תיק", "case number", "ת.א.", "עא", "רעא"]
+        },
+        {
+          "name": "בית משפט",
+          "keywords": ["בית משפט", "court", "מחוזי", "peace", "supreme"]
+        },
+        {
+          "name": "השופט",
+          "keywords": ["השופט", "judge", "המכבד", "honorable"]
+        },
+        {
+          "name": "תאריך פסיקה",
+          "keywords": ["ניתן", "date", "ניתן ביום", "decided"]
+        },
+        {
+          "name": "הצדדים",
+          "keywords": ["נגד", "v.", "plaintiff", "defendant", "תובע", "נתבע"]
+        },
+        {
+          "name": "סוג תביעה",
+          "keywords": ["תביעה", "claim", "סוג", "cause of action"]
+        },
+        {
+          "name": "החלטה/פסיקה",
+          "keywords": ["פסוק", "נפסק", "decided", "hold", "we hold"]
+        },
+        {
+          "name": "סעד שניתן",
+          "keywords": ["סעד", "remedy", "פיצוי", "damages", "צו", "injunction"]
+        },
+        {
+          "name": "שכר טרחה/מע\"מ",
+          "keywords": ["מע\"מ", "מס ערך מוסף", "VAT", "18%"]
+        }
+      ]
+    },
+    "legal_notice": {
+      "description": "מכתב משפטי/התראה - Israel Bar Association + international",
+      "language": "he",
+      "fields": [
+        {
+          "name": "שולח",
+          "keywords": ["מאת", "from", "שלח", "sender"]
+        },
+        {
+          "name": "נמען",
+          "keywords": ["לכבוד", "to", "addressee", "נמען"]
+        },
+        {
+          "name": "תאריך",
+          "keywords": ["תאריך", "date"]
+        },
+        {
+          "name": "נושא",
+          "keywords": ["הנדון", "re", "subject", "regarding"]
+        },
+        {
+          "name": "דרישה עיקרית",
+          "keywords": ["דרישה", "demand", "מבקש", "request"]
+        },
+        {
+          "name": "מועד להתייחסות",
+          "keywords": ["תוך", "deadline", "ימים", "days"],
+          "bad_if": ["7 ימים", "7 days"]
+        },
+        {
+          "name": "איומים משפטיים",
+          "keywords": ["הליך משפטי", "תביעה", "legal action", "litigation"]
+        },
+        {
+          "name": "חתימה עו''ד",
+          "keywords": ["עו''ד", "advocate", "attorney", "lawyer"]
+        },
+        {
+          "name": "מספר רישיון",
+          "keywords": ["רישיון", "license number"]
+        },
+        {
+          "name": "כתובת למשלוח",
+          "keywords": ["כתובת", "address for service"]
+        }
+      ]
+    }
+  }
+}

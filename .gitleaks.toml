@@ -1,0 +1,136 @@
+# .gitleaks.toml — Sentinel secret scan rules (PUBLIC, tracked)
+# Contains ONLY generic key-format rules — no personal values.
+# Personal PII rules (MACs, chat_id, names) live in .gitleaks-local.toml (gitignored).
+# All regex MUST be RE2-compatible (no lookahead/lookbehind).
+
+[extend]
+useDefault = true
+
+# ─────────────────────────────────────────────────────────────
+# Threat-intel API keys — format-based detection (safe to publish)
+# ─────────────────────────────────────────────────────────────
+
+[[rules]]
+id = "virustotal-api-key"
+description = "VirusTotal API key (64 hex chars)"
+regex = '''(?i)\b(virustotal[_-]?api[_-]?key|vt[_-]?api[_-]?key)\b["'\s:=]{1,4}["']?([0-9a-fA-F]{64})["']?'''
+secretGroup = 2
+keywords = ["virustotal", "vt_api_key"]
+tags = ["key", "virustotal"]
+
+[[rules]]
+id = "virustotal-api-key-bare"
+description = "Bare 64-hex VirusTotal key in env assignment"
+regex = '''\bVIRUSTOTAL_API_KEY\s*=\s*["']([0-9a-fA-F]{64})["']'''
+secretGroup = 1
+keywords = ["virustotal_api_key"]
+tags = ["key", "virustotal"]
+
+[[rules]]
+id = "abuseipdb-api-key"
+description = "AbuseIPDB API key (80 alnum)"
+regex = '''(?i)\babuseipdb[_-]?api[_-]?key\b["'\s:=]{1,4}["']?([a-zA-Z0-9]{80})["']?'''
+secretGroup = 1
+keywords = ["abuseipdb"]
+tags = ["key", "abuseipdb"]
+
+[[rules]]
+id = "telegram-bot-token"
+description = "Telegram bot token"
+regex = '''\b([0-9]{8,10}:AA[A-Za-z0-9_-]{33})\b'''
+secretGroup = 1
+keywords = ["telegram", "bot_token", "AA"]
+tags = ["key", "telegram"]
+
+[[rules]]
+id = "threatfox-auth-key"
+description = "ThreatFox Auth-Key (abuse.ch)"
+regex = '''(?i)\bthreatfox[_-]?auth[_-]?key\b["'\s:=]{1,4}["']?([a-zA-Z0-9]{32,64})["']?'''
+secretGroup = 1
+keywords = ["threatfox"]
+tags = ["key", "threatfox"]
+
+[[rules]]
+id = "urlhaus-auth-key"
+description = "URLhaus Auth-Key (abuse.ch)"
+regex = '''(?i)\burlhaus[_-]?auth[_-]?key\b["'\s:=]{1,4}["']?([a-zA-Z0-9]{32,64})["']?'''
+secretGroup = 1
+keywords = ["urlhaus"]
+tags = ["key", "urlhaus"]
+
+[[rules]]
+id = "maltiverse-auth-key"
+description = "Maltiverse API auth key"
+regex = '''(?i)\bmaltiverse[_-]?(api[_-]?key|auth[_-]?key|token)\b["'\s:=]{1,4}["']?([a-zA-Z0-9_-]{32,64})["']?'''
+secretGroup = 2
+keywords = ["maltiverse"]
+tags = ["key", "maltiverse"]
+
+[[rules]]
+id = "nvd-api-key"
+description = "NVD API key (36 UUID-ish)"
+regex = '''(?i)\bnvd[_-]?api[_-]?key\b["'\s:=]{1,4}["']?([0-9a-fA-F-]{36})["']?'''
+secretGroup = 1
+keywords = ["nvd_api_key"]
+tags = ["key", "nvd"]
+
+# ─────────────────────────────────────────────────────────────
+# Allowlist — known safe paths / example values
+# ─────────────────────────────────────────────────────────────
+
+[allowlist]
+description = "Sentinel allowlist — example configs, test fixtures, this file, gitignored dirs"
+paths = [
+  # Gitignored runtime dirs (not source — scanned by --no-git but never committed)
+  '''logs/.*''',
+  '''data/.*''',
+  '''state/.*''',
+  '''memory/.*''',
+  '''downloads/.*''',
+  '''\.venv/.*''',
+  '''\.git/.*''',
+  '''\.mypy_cache/.*''',
+  '''\.pytest_cache/.*''',
+  '''\.ruff_cache/.*''',
+  '''\.playwright-mcp/.*''',
+  '''\.continue/.*''',
+  '''\.clawhub/.*''',
+  '''\.windsurf/.*''',
+  '''__pycache__/.*''',
+  '''tests/results/.*''',
+  '''tests/output/.*''',
+  '''tests/live_.*_out.*\.txt$''',
+  # Gitignored files with real secrets (never committed)
+  '''^\.env$''',
+  '''^\.commit_msg\.txt$''',
+  '''^\.gitleaks-local\.toml$''',
+  # Personal config (gitignored — real values live here)
+  '''config/trusted_devices\.json$''',
+  '''config/news_feeds\.json$''',
+  '''config/channels\.json$''',
+  '''config/persona/USER\.md$''',
+  '''\.devin/config\.local\.json$''',
+  # Example configs + this file + test fixtures using generic paths
+  '''\.gitleaks\.toml$''',
+  '''config/.*\.example\.json$''',
+  '''config/persona/USER\.example\.md$''',
+  '''\.gitignore$''',
+  '''tests/test_self_awareness\.py$''',        # uses C:\Users\user (generic)
+  '''tests/test_safe_process_path\.py$''',     # uses C:\Users\attacker (test fixture)
+  '''tests/test_critic_entity_audit\.py$''',   # uses C:\Users\user (generic)
+]
+
+# Example MAC 00-00-00-00-00-01 in example config — safe
+# Test fixtures in credential_monitor / high_impact tests — fake keys for testing detection
+regexes = [
+  '''00-00-00-00-00-01''',
+  '''\$\{TELEGRAM_CHAT_ID\}''',
+  '''\$\{BOT_TOKEN\}''',
+  '''sk-1234567890abcdef1234567890abcdef''',
+  '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0\.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c''',
+]
+
+# Commit author noreply email — not a secret
+stopwords = [
+  "100470709+bj112233@users.noreply.github.com",
+]

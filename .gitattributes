@@ -1,0 +1,12 @@
+# Normalize line endings — prevent CRLF/LF mismatch between ruff format and Git
+* text=auto eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+*.sh text eol=lf
+*.py text eol=crlf
+*.toml text eol=crlf
+*.cfg text eol=crlf
+*.yml text eol=crlf
+*.yaml text eol=crlf
+*.md text eol=crlf
+*.json text eol=crlf

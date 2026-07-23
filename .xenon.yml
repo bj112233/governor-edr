@@ -1,0 +1,22 @@
+# Xenon complexity thresholds — enforced by lint-gate.py
+# Ratchet protocol: only tighten, never loosen.
+#
+# Current state (after cognitive complexity refactor — commit eef99c8):
+#   - Average complexity: A
+#   - Max single-block: D (ratchet floor)
+#   - 0 modules at C rank
+#
+# Thresholds:
+#   max-absolute: D  → blocks at E or above fail
+#   max-average: A   → average must stay at A (upgraded from B)
+#   max-modules: C   → per-module average must stay at C or better
+#
+# Companion gate: Cognitive Complexity (bin/cognitive_complexity_gate.py)
+#   - Threshold: >15 (SonarQube metric, nesting-weighted)
+#   - Baseline: .cognitive_baseline.txt (89 known violations, ratchet-protected)
+#   - Critical for ReAct State Machine: detects nesting that CC misses
+#   - Gate FAILS on NEW violations or worsened existing ones
+
+max-absolute: D
+max-average: A
+max-modules: C

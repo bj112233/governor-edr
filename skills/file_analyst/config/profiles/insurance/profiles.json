@@ -1,0 +1,188 @@
+{
+  "_comment": "Insurance policy analysis profiles - Israeli and international formats",
+  "_category": "insurance",
+  "profiles": {
+    "car_insurance_policy": {
+      "description": "פוליסת ביטוח רכב - Israel + International formats",
+      "language": "he",
+      "fields": [
+        {
+          "name": "מספר פוליסה",
+          "keywords": ["מספר פוליסה", "policy number", "policy no", "מס' פוליסה"]
+        },
+        {
+          "name": "תאריך תוקף",
+          "keywords": ["תוקף עד", "valid until", "expiration", "expiry date", "תאריך סיום"]
+        },
+        {
+          "name": "בעל הפוליסה",
+          "keywords": ["בעל הפוליסה", "policy holder", "insured", "שם המבוטח", "תז", "ת.ז.", "ID number"]
+        },
+        {
+          "name": "פרטי רכב",
+          "keywords": ["רכב", "vehicle", "יצרן", "make", "דגם", "model", "שנתון", "year", "מספר רישוי", "license plate", "לוחית", "מספר שלדה", "VIN", "chassis"]
+        },
+        {
+          "name": "כיסוי חובה",
+          "keywords": ["ביטוח חובה", "mandatory insurance", "third party", "צד ג'"]
+        },
+        {
+          "name": "כיסוי מקיף",
+          "keywords": ["ביטוח מקיף", "comprehensive", "צד ג' מורחב", "third party extended"],
+          "good_if": ["כלול", "included"]
+        },
+        {
+          "name": "כיסוף גניבה/אש",
+          "keywords": ["גניבה", "theft", "אש", "fire"]
+        },
+        {
+          "name": "פרטיית נזק",
+          "keywords": ["פרטייה", "deductible", "excess", "השתתפות עצמית"],
+          "bad_if": ["גבוה", "high", "5000", "10%"]
+        },
+        {
+          "name": "סכום כיסוי",
+          "keywords": ["סכום כיסוי", "sum insured", "coverage amount", "מסכום הביטוח"]
+        },
+        {
+          "name": "סוכן/חברה",
+          "keywords": ["סוכן", "agent", "חברת ביטוח", "insurer", "מבטח"]
+        },
+        {
+          "name": "מסלול תשלום",
+          "keywords": ["תשלום", "payment", "monthly", "שנתי", "רבעוני"]
+        }
+      ]
+    },
+    "home_insurance_policy": {
+      "description": "ביטוח דירה/בית - Israel mortgage requirements + international",
+      "language": "he",
+      "fields": [
+        {
+          "name": "כתובת המבוטח",
+          "keywords": ["כתובת", "address", "רחוב", "street", "עיר", "city"]
+        },
+        {
+          "name": "גודל דירה",
+          "keywords": ["מטר", "sqm", "square meters", "שטח"]
+        },
+        {
+          "name": "כיסוי מבנה",
+          "keywords": ["מבנה", "structure", "building", "בנין", "reconstruction"]
+        },
+        {
+          "name": "כיסוי תכולה",
+          "keywords": ["תכולה", "contents", "personal property", "רכוש"]
+        },
+        {
+          "name": "אחריות צד ג",
+          "keywords": ["צד ג'", "third party liability", "liability", "אחריות אזרחית"]
+        },
+        {
+          "name": "כיסוי מים",
+          "keywords": ["נזקי מים", "water damage", "צנרת", "plumbing", "הצפה", "flood"]
+        },
+        {
+          "name": "פריצה וגניבה",
+          "keywords": ["גניבה", "burglary", "theft", "פריצה", "break-in"]
+        },
+        {
+          "name": "תנאי שכירות",
+          "keywords": ["שכירות", "rental", "משכיר", "landlord"],
+          "good_if": ["מכוסה", "covered", "ביטוח משכיר"]
+        },
+        {
+          "name": "כיסוי מקרקעין",
+          "keywords": ["דירה", "apartment", "בית פרטי", "house"]
+        },
+        {
+          "name": "דרישת משכנתא",
+          "keywords": ["בנק", "bank requirement", "שיעבוד", "mortgagee"]
+        }
+      ]
+    },
+    "life_insurance_policy": {
+      "description": "ביטוח חיים - Israel pension law + international",
+      "language": "he",
+      "fields": [
+        {
+          "name": "מבוטח",
+          "keywords": ["מבוטח", "insured", "שם", "name", "תז", "ID"]
+        },
+        {
+          "name": "סכום ביטוח",
+          "keywords": ["סכום ביטוח", "sum assured", "face amount", "death benefit"]
+        },
+        {
+          "name": "מוטבים",
+          "keywords": ["מוטב", "beneficiary", "יורשים", "heirs"]
+        },
+        {
+          "name": "תקופת הביטוח",
+          "keywords": ["תקופה", "term", "duration", "מועד סיום"]
+        },
+        {
+          "name": "ביטוח ללוואה",
+          "keywords": ["הלוואה", "loan", "משכנתא", "mortgage", "debt"]
+        },
+        {
+          "name": "מיסוי",
+          "keywords": ["סעיף 190", "section 190", "פטור ממעמ", "exempt"]
+        },
+        {
+          "name": "תנאי פטור",
+          "keywords": ["תקופת אכזבה", "contestability", "suspect period"],
+          "bad_if": ["24 חודש", "24 months"]
+        },
+        {
+          "name": "יתרת הלוואה",
+          "keywords": ["יתרת", "balance", "loan amount"]
+        }
+      ]
+    },
+    "health_insurance_policy": {
+      "description": "ביטוח בריאות - Israel Kupat Holim + international",
+      "language": "he",
+      "fields": [
+        {
+          "name": "כיסוי מושתלים",
+          "keywords": ["השתלות", "transplants", "כליה", "kidney", "לב", "heart"]
+        },
+        {
+          "name": "כיסוי ניתוחים",
+          "keywords": ["ניתוח", "surgery", "אנגיו", "catheterization"]
+        },
+        {
+          "name": "כיסוי תרופות",
+          "keywords": ["תרופות", "medication", "סל", "basket", "אנלי", "oncology"]
+        },
+        {
+          "name": "תקופת המתנה",
+          "keywords": ["המתנה", "waiting period", "grace period"],
+          "bad_if": ["90 יום", "6 חודשים", "90 days", "6 months"]
+        },
+        {
+          "name": "מגבלות מחלות",
+          "keywords": ["מחלה קיימת", "pre-existing condition", "מחלות רקע"],
+          "bad_if": ["לא כלול", "excluded"]
+        },
+        {
+          "name": "כיסוי סיעוד",
+          "keywords": ["סיעוד", "nursing", "long-term care"]
+        },
+        {
+          "name": "חדר פרטי",
+          "keywords": ["פרטי", "private room", "בית חולים", "hospital"]
+        },
+        {
+          "name": "רשת בתי חולים",
+          "keywords": ["רשת", "network", "הדסה", "איכילוב", "רמבם"]
+        },
+        {
+          "name": "כיסוי בחול",
+          "keywords": ["חול", "abroad", "ארהב", "usa", "אירופה"]
+        }
+      ]
+    }
+  }
+}

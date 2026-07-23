@@ -1,0 +1,15 @@
+{
+  "ownerId": "sentinel-bot",
+  "slug": "file-analyst",
+  "version": "1.0.0",
+  "publishedAt": 1767545312885,
+  "extras": {
+    "ml": {
+      "description": "Optional heavy ML stack for advanced Markdown conversion",
+      "packages": [
+        "markitdown"
+      ],
+      "requirements_file": "requirements-heavy.txt"
+    }
+  }
+}

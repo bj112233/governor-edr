@@ -1,0 +1,44 @@
+{
+  "_comment": "Tech & AI news feeds. Use: news_monitor.py --config config/feeds_tech_ai.json",
+  "feeds": [
+    {
+      "name": "Ynet מחשבים",
+      "url": "https://www.ynet.co.il/Integration/StoryRss544.xml",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=ynet.co.il&sz=128"
+    },
+    {
+      "name": "Ynet טכנולוגיה",
+      "url": "https://www.ynet.co.il/Integration/StoryRss545.xml",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=ynet.co.il&sz=128"
+    },
+    {
+      "name": "Walla TECH",
+      "url": "https://rss.walla.co.il/feed/6?type=main",
+      "type": "rss",
+      "default_image": "https://www.google.com/s2/favicons?domain=rss.walla.co.il&sz=128"
+    }
+  ],
+  "keywords": [
+    "AI",
+    "artificial intelligence",
+    "OpenAI",
+    "GPT",
+    "Claude",
+    "Gemini",
+    "LLM",
+    "machine learning",
+    "startup",
+    "IPO",
+    "acquisition",
+    "funding",
+    "valuation",
+    "טכנולוגיה",
+    "סטארט-אפ",
+    "אקזיט",
+    "גיוס",
+    "בינה מלאכותית"
+  ],
+  "check_interval_minutes": 60
+}
