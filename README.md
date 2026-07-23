@@ -1,5 +1,7 @@
 # Sentinel
 
+[![CI](https://github.com/bj112233/sentinel-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/bj112233/sentinel-agent/actions/workflows/ci.yml)
+
 Local-first threat detection agent for Windows. Runs a 4B-parameter LLM
 on-device (KoboldCpp) for inference without cloud dependency. Monitors
 system behavior, enriches alerts with on-device reasoning, and delivers
@@ -81,8 +83,8 @@ hallucination defense): [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 
 ```powershell
 # 1. Clone
-git clone <repo-url> tactical_bot
-cd tactical_bot
+git clone https://github.com/bj112233/sentinel-agent.git
+cd sentinel-agent
 
 # 2. Create venv (Python 3.12.2 — the only supported interpreter)
 python -m venv .venv
@@ -98,7 +100,9 @@ copy config\trusted_devices.example.json config\trusted_devices.json
 copy config\persona\USER.example.md config\persona\USER.md
 # Edit each file — replace placeholders with your values.
 
-# 5. Create .env with your API keys (see below)
+# 5. Create .env from template
+copy .env.example .env
+# Edit .env — replace placeholders with your API keys (see table below).
 #    The .env file is gitignored — never commit it.
 
 # 6. Install gitleaks (for the secret/PII scan gate)
