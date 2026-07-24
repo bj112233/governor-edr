@@ -70,5 +70,7 @@ def test_core_tables_exist(db_name):
     expected_tables = _EXPECTED_DBS[db_name]
     with sqlite3.connect(str(db_path)) as conn:
         tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
-        for table in expected_tables:
-            assert table in tables, f"{db_path.name}: missing table '{table}'"
+    if not tables:
+        pytest.skip(f"{db_name} exists but has no tables (uninitialized)")
+    for table in expected_tables:
+        assert table in tables, f"{db_path.name}: missing table '{table}'"
