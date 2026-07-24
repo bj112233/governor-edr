@@ -1,0 +1,44 @@
+# Dependabot — automated dependency updates.
+# Configures two ecosystems:
+#   1. uv — keeps uv.lock in sync with latest compatible versions
+#   2. github-actions — bumps actions/checkout, actions/setup-python, etc.
+#
+# Schedule: weekly on Monday. PRs are opened individually per package;
+# each triggers CI (lint-gate + tests) before merge.
+
+version: 2
+
+updates:
+  # ── Python dependencies (uv.lock) ──────────────────────────────────────
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      prefix: "deps"
+    # Group dev-only tooling (mypy, ruff, pytest, etc.) into a single PR
+    # to reduce noise. Runtime deps get individual PRs for focused review.
+    groups:
+      dev-tooling:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # ── GitHub Actions versions ────────────────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
