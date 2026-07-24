@@ -230,3 +230,15 @@ async def close_pools_after_test():
     from services.db_pool import close_all_pools
 
     await close_all_pools()
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """Force-exit after pytest completes.
+
+    cffi/weasyprint's failed dlopen on Windows CI leaves a non-daemon
+    C thread that prevents Python from exiting cleanly. All test
+    cleanup has already run by this point, so os._exit is safe.
+    """
+    import os
+
+    os._exit(exitstatus)
