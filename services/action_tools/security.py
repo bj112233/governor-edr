@@ -53,7 +53,6 @@ _PS_ALLOWED_VERBS = {
     "where",
     "measure",
     "write",
-    "out",
     "format",
     "sort",
     "group",
@@ -62,6 +61,17 @@ _PS_ALLOWED_VERBS = {
     "join",
     "convert",
 }
+
+# Redirect operators — exfil vector. In PowerShell, < and > are ONLY used
+# for stream redirection (not comparison, which uses -lt/-gt/-eq/etc.).
+_PS_REDIRECT_RE = re.compile(r"[<>]")
+
+# .env files — contain API keys, tokens, and other secrets.
+_PS_ENV_FILE_RE = re.compile(r"\.env\b", re.IGNORECASE)
+
+# $env: variable expansion — can point to arbitrary filesystem locations
+# (USERPROFILE, APPDATA, TEMP, etc.), enabling path traversal.
+_PS_ENV_VAR_RE = re.compile(r"\$env:", re.IGNORECASE)
 
 
 def validate_ip(ip: str) -> bool:
@@ -78,6 +88,15 @@ def is_powershell_safe(command: str) -> bool:
         return False
     # Block all chaining / obfuscation operators (|, ;, `, &, {}, (), [])
     if re.search(r"[|;`&{}()\[\]]", cmd):
+        return False
+    # Block redirects (< >) — exfil vector
+    if _PS_REDIRECT_RE.search(cmd):
+        return False
+    # Block .env access — contains secrets
+    if _PS_ENV_FILE_RE.search(cmd):
+        return False
+    # Block $env: variable expansion — arbitrary path traversal
+    if _PS_ENV_VAR_RE.search(cmd):
         return False
     first_token = cmd.split()[0].lower()
     for verb in _PS_ALLOWED_VERBS:

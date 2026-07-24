@@ -133,6 +133,164 @@ class TestC2DashboardServer:
         assert "WEB_C2_AUTH_PASSWORD is empty" in caplog.text
 
 
+class TestInitiate2FA:
+    """_initiate_2fa: generic 2FA challenge initiation for sensitive ops."""
+
+    @pytest.mark.asyncio
+    @patch("services.web_c2_commands._send_otp_via_telegram", new_callable=AsyncMock)
+    @patch("services.two_factor.initiate_challenge")
+    async def test_success(self, mock_initiate, mock_send_otp):
+        from services.web_c2_commands import _initiate_2fa
+
+        mock_initiate.return_value = ("challenge-abc-123", "123456")
+        result = await _initiate_2fa("reload_hashes")
+
+        assert result["status"] == "pending_2fa"
+        assert result["code"] == 202
+        assert result["challenge_id"] == "challenge-abc-123"
+        mock_send_otp.assert_awaited_once_with("reload_hashes", "challenge-abc-123", "123456")
+
+    @pytest.mark.asyncio
+    @patch("services.two_factor.initiate_challenge")
+    async def test_rate_limited(self, mock_initiate):
+        from services.two_factor import OTPRateLimitError
+        from services.web_c2_commands import _initiate_2fa
+
+        mock_initiate.side_effect = OTPRateLimitError(30.0, "cooldown")
+        result = await _initiate_2fa("reload_hashes")
+
+        assert result["status"] == "error"
+        assert result["code"] == 429
+        assert "cooldown" in result["error"]
+        assert result["retry_after"] == 30
+
+    @pytest.mark.asyncio
+    @patch("services.two_factor.initiate_challenge")
+    async def test_initiation_failed(self, mock_initiate):
+        from services.web_c2_commands import _initiate_2fa
+
+        mock_initiate.return_value = None
+        result = await _initiate_2fa("reload_hashes")
+
+        assert result["status"] == "error"
+        assert result["code"] == 500
+        assert "2FA initiation failed" in result["error"]
+
+
+class TestVerify2FA:
+    """_verify_2fa: OTP verification gate."""
+
+    def test_missing_otp_code(self):
+        from services.web_c2_commands import _verify_2fa
+
+        result = _verify_2fa("reload_hashes", None, "challenge-123")
+        assert result is not None
+        assert result["status"] == "error"
+        assert result["code"] == 403
+        assert "OTP code required" in result["error"]
+
+    @patch("services.two_factor.verify_challenge", return_value=False)
+    def test_wrong_code(self, mock_verify):
+        from services.web_c2_commands import _verify_2fa
+
+        result = _verify_2fa("reload_hashes", "wrong", "challenge-123")
+        assert result is not None
+        assert result["status"] == "error"
+        assert result["code"] == 403
+        assert "2FA verification failed" in result["error"]
+
+    @patch("services.two_factor.verify_challenge", return_value=True)
+    def test_success(self, mock_verify):
+        from services.web_c2_commands import _verify_2fa
+
+        result = _verify_2fa("reload_hashes", "123456", "challenge-123")
+        assert result is None
+
+
+class TestDispatchSensitive:
+    """_dispatch_sensitive: full 2FA flow orchestration."""
+
+    @pytest.mark.asyncio
+    @patch("services.web_c2_commands._initiate_2fa", new_callable=AsyncMock)
+    async def test_no_challenge_id_initiates_2fa(self, mock_initiate):
+        from services.web_c2_commands import _dispatch_sensitive
+
+        mock_initiate.return_value = {"status": "pending_2fa", "code": 202}
+        result = await _dispatch_sensitive("reload_hashes", None, None, None)
+
+        assert result["status"] == "pending_2fa"
+        mock_initiate.assert_awaited_once_with("reload_hashes")
+
+    @pytest.mark.asyncio
+    @patch("services.web_c2_commands._verify_2fa")
+    async def test_verify_fails_returns_error(self, mock_verify):
+        from services.web_c2_commands import _dispatch_sensitive
+
+        mock_verify.return_value = {"status": "error", "code": 403}
+        result = await _dispatch_sensitive("reload_hashes", None, "wrong", "challenge-123")
+
+        assert result["status"] == "error"
+        assert result["code"] == 403
+
+    @pytest.mark.asyncio
+    @patch("services.web_c2_commands._verify_2fa", return_value=None)
+    async def test_no_handler_registered(self, mock_verify):
+        from services.web_c2_commands import _dispatch_sensitive
+
+        result = await _dispatch_sensitive("unknown_sensitive", None, "123456", "challenge-123")
+        assert result["status"] == "error"
+        assert result["code"] == 500
+
+    @pytest.mark.asyncio
+    @patch("services.web_c2_commands._verify_2fa", return_value=None)
+    async def test_handler_executed_after_2fa(self, mock_verify):
+        from services.web_c2_commands import _dispatch_sensitive
+
+        result = await _dispatch_sensitive("reload_hashes", None, "123456", "challenge-123")
+        assert result["status"] == "ok"
+        assert "Reloaded" in result["message"]
+
+
+class TestDispatchCommand:
+    """dispatch_command: generic 2FA gate routing."""
+
+    @pytest.mark.asyncio
+    async def test_empty_cmd(self):
+        from services.web_c2_commands import dispatch_command
+
+        result = await dispatch_command("")
+        assert result["status"] == "error"
+        assert result["code"] == 400
+
+    @pytest.mark.asyncio
+    @patch("services.web_c2_commands._dispatch_kill_process", new_callable=AsyncMock)
+    async def test_kill_process_routed(self, mock_kill):
+        from services.web_c2_commands import dispatch_command
+
+        mock_kill.return_value = {"status": "ok"}
+        result = await dispatch_command("kill_process", target="1234")
+        mock_kill.assert_awaited_once_with("1234")
+
+    @pytest.mark.asyncio
+    @patch("services.web_c2_commands._dispatch_sensitive", new_callable=AsyncMock)
+    async def test_sensitive_cmd_routed_to_2fa(self, mock_sensitive):
+        from services.web_c2_commands import dispatch_command
+
+        mock_sensitive.return_value = {"status": "pending_2fa", "code": 202}
+        result = await dispatch_command("reload_hashes")
+
+        assert result["status"] == "pending_2fa"
+        mock_sensitive.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_unknown_cmd(self):
+        from services.web_c2_commands import dispatch_command
+
+        result = await dispatch_command("bogus")
+        assert result["status"] == "error"
+        assert "Unknown command" in result["error"]
+
+
 class TestParseTrigger:
     """Trigger string parsing utility."""
 
