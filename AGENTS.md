@@ -21,6 +21,26 @@
 - Plan: `tasks/todo.md` + `tasks/lessons.md`
 - Verification: run `.\.venv\Scripts\python.exe bin\lint-gate.py` before declaring done
 - Ratchet protocol: extract one block per commit; never lower threshold below proven CC
+- Coverage ratchet policy (CRITICAL — prevents the ratchet from becoming a "make CI
+  pass" knob):
+  - Baseline file: `.coverage_baseline.txt`. Regenerate via
+    `.\.venv\Scripts\python.exe bin\coverage_gate.py --regenerate`.
+  - **When to raise**: after adding tests that increase coverage. Regenerate
+    baseline in the SAME commit as the tests (commit message: `test: ...`).
+  - **When to lower**: ONLY when coverage drops due to legitimate code changes
+    (e.g., dependency upgrade makes a fallback branch unreachable, Windows-only
+    API function becomes untestable). Must be a SEPARATE commit
+    (`fix(ci): lower coverage baseline — <justification>`), never bundled into a
+    feature PR. The commit message MUST explain which functions lost coverage
+    and why it's untestable.
+  - **Never lower for**: deleted tests, skipped tests, or "the test is flaky".
+    If a test is flaky, fix it or mark `pytest.mark.skip` with a reason — do not
+    remove it from the baseline.
+  - **Dependabot bumps**: if a bump legitimately drops coverage (runtime
+    behavior drift), lower the baseline in a follow-up commit with justification.
+    Do NOT lower as part of the bump merge itself.
+  - **Baseline must match CI**: regenerate without `.env` (CI has no `.env`).
+    `Move-Item .env .env.tmp; ... --regenerate; Move-Item .env.tmp .env`.
 - After every significant commit (refactor, feature, architectural change): update
   `docs/ARCHITECTURE.md` (and `conceptual_repo/ARCHITECTURE.md` if it references the
   same facts) and commit the docs update ATOMICALLY as its own separate commit
