@@ -77,8 +77,10 @@ async def store(tmp_path):
 
     # Monkey-patch all modules that use _pool
     original_pool = schema._pool
+    original_crud_pool = crud._pool
     schema._pool = pool
     episodic._pool = pool
+    crud._pool = pool
     crud._episodic_store = None  # force new singleton
 
     s = EpisodicStore()
@@ -87,6 +89,7 @@ async def store(tmp_path):
     # Cleanup
     schema._pool = original_pool
     episodic._pool = original_pool
+    crud._pool = original_crud_pool
     crud._episodic_store = None
 
 

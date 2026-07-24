@@ -64,8 +64,10 @@ async def store(tmp_path):
         await db.commit()
 
     original_pool = schema._pool
+    original_crud_pool = crud._pool
     schema._pool = pool
     episodic._pool = pool
+    crud._pool = pool
     crud._episodic_store = None
 
     s = EpisodicStore()
@@ -73,6 +75,7 @@ async def store(tmp_path):
 
     schema._pool = original_pool
     episodic._pool = original_pool
+    crud._pool = original_crud_pool
     crud._episodic_store = None
 
 
