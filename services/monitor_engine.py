@@ -52,7 +52,7 @@ def _cpu_sampler_daemon():
                 info = p.info
                 if info["pid"] in (0, 4):
                     continue
-                raw_cpu = info["cpu_percent"] or 0.0
+                raw_cpu = info.get("cpu_percent") or 0.0
                 true_cpu = raw_cpu / cpu_cores if cpu_cores else raw_cpu
                 if true_cpu > 5.0 and not any(ex in (info["name"] or "").lower() for ex in MONITOR_PROCESS_EXCLUSIONS):
                     info["cpu_percent"] = true_cpu

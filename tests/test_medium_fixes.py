@@ -131,12 +131,19 @@ def test_trim_chars_dynamic_formula():
     assert "LLM_CONTEXT_WINDOW * 0.75" in config_src
 
 
-def test_trim_chars_env_override():
-    """Env var / .env should override the dynamic calculation."""
+def test_trim_chars_env_override(monkeypatch):
+    """Env var should override the dynamic calculation."""
+    import importlib
+
+    monkeypatch.setenv("LLM_AGENT_TRIM_CHARS", "8192")
     import config
 
-    # .env has LLM_AGENT_TRIM_CHARS=8192 — verify it's loaded
-    assert config.LLM_AGENT_TRIM_CHARS == 8192  # from .env, not formula
+    importlib.reload(config)
+    try:
+        assert config.LLM_AGENT_TRIM_CHARS == 8192  # from env, not formula
+    finally:
+        monkeypatch.delenv("LLM_AGENT_TRIM_CHARS", raising=False)
+        importlib.reload(config)
 
 
 # ── M7: Skill Cache Key with CWD ──
