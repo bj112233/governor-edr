@@ -1,0 +1,55 @@
+# Regenerate requirements.txt (auto-generated artifact) after Dependabot
+# updates uv.lock. Dependabot's `uv` ecosystem bumps uv.lock but does not
+# know that requirements.txt must be re-exported via `uv export`. Without
+# this, every Dependabot PR fails the lock-sync gate.
+#
+# This workflow checks out the PR branch, re-exports requirements.txt, and
+# commits it back — keeping the PR in sync.
+
+name: Dependabot export
+
+on:
+  pull_request:
+    # Only run on PRs opened by Dependabot (uv ecosystem bumps uv.lock).
+    types: [opened, synchronize, reopened]
+
+jobs:
+  export-requirements:
+    name: Regenerate requirements.txt from uv.lock
+    runs-on: windows-latest
+    if: github.actor == 'dependabot[bot]'
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Check out the PR head (Dependabot's branch), not the base.
+          ref: ${{ github.head_ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.3.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Re-export requirements.txt
+        run: uv export --format requirements.txt --no-emit-project --output-file requirements.txt
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add requirements.txt
+          if git diff --cached --quiet; then
+            echo "requirements.txt already in sync — nothing to commit"
+          else
+            git commit -m "chore: regenerate requirements.txt from uv.lock"
+            git push
+          fi
