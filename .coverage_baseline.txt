@@ -1,19 +1,19 @@
 # Coverage baseline — ratchet, do NOT lower.
 # Regenerate after adding tests: python bin/coverage_gate.py --regenerate
-Total: 77.66%
-# Security functions tracked: 51
+Total: 76.89%
+# Security functions tracked: 53
 services/_skills_engine/_process_runner.py::spawn_and_wait = 7
 services/action_tools/defender.py::defender_scan = 23
 services/action_tools/firewall.py::_add_rule = 2
 services/action_tools/firewall.py::_del_rule = 2
 services/action_tools/firewall.py::_del_rule_rollback = 7
-services/action_tools/firewall.py::block_ip = 2
+services/action_tools/firewall.py::block_ip = 3
 services/action_tools/firewall.py::unblock_ip = 0
 services/action_tools/screenshot.py::local_screenshot = 3
 services/action_tools/services_mgmt.py::_exec_net = 11
 services/action_tools/shell.py::_run_powershell_exec = 29
 services/action_tools/shell.py::run_powershell = 2
-services/agent/_agent_critic.py::_run_critic_evaluation = 15
+services/agent/_agent_critic.py::_run_critic_evaluation = 10
 services/agent/_agent_loop.py::_check_degraded_mode = 0
 services/agent/_agent_tool_audit.py::_apply_speculation_guard = 0
 services/agent/_agent_tool_audit.py::_audit_entity_claims = 0
@@ -50,6 +50,8 @@ services/two_factor.py::initiate_challenge = 0
 services/two_factor.py::verify_challenge = 8
 services/web_c2_auth.py::check_basic_auth = 0
 services/web_c2_auth.py::client_ip_allowed = 0
-services/web_c2_commands.py::dispatch_command = 4
+services/web_c2_commands.py::_dispatch_reload_hashes = 0
+services/web_c2_commands.py::_initiate_reload_hashes_2fa = 3
+services/web_c2_commands.py::dispatch_command = 0
 services/web_c2_commands.py::execute_kill_process = 7
 services/web_c2_routes.py::_check_c2_rate_limit = 1

@@ -106,7 +106,7 @@ def _fetch_threatfox_sync(days: int = 1) -> list[dict[str, Any]]:
     headers: dict[str, str] = {"User-Agent": _UA}
     if _THREATFOX_AUTH_KEY:
         headers["Auth-Key"] = _THREATFOX_AUTH_KEY
-    payload = {"query": "get_iocs", "days": min(max(days, 1), 7)}
+    payload: dict[str, str | int] = {"query": "get_iocs", "days": min(max(days, 1), 7)}
     try:
         resp = requests.post(_THREATFOX_API_URL, json=payload, headers=headers, timeout=20)
         resp.raise_for_status()
