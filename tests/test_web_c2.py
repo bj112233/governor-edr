@@ -108,7 +108,7 @@ class TestC2DashboardServer:
         # 0.0.0.0 requires explicit opt-in (S-11) — IP whitelist + Session 0 boundary.
         assert srv.host == "0.0.0.0"
 
-    @patch.dict(os.environ, {"WEB_C2_HOST": "0.0.0.0"})
+    @patch.dict(os.environ, {"WEB_C2_HOST": "0.0.0.0", "WEB_C2_LAN_ALLOWED": ""})
     def test_lan_binding_requires_opt_in(self):
         """S-11: 0.0.0.0 without WEB_C2_LAN_ALLOWED=true must raise."""
         with pytest.raises(ValueError, match="explicit opt-in"):
