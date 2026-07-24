@@ -100,7 +100,7 @@ filler. Personal assistant delivered via Telegram.
 | Telegram | aiogram 3.x |
 | Web dashboard | aiohttp (Basic Auth, IP whitelist, rate-limited) |
 | Scheduler | APScheduler |
-| Lint gates | ruff, xenon, import-linter, vulture, mypy, bandit, file-length, pip-audit (+ radon CC report) |
+| Lint gates | ruff, xenon, import-linter, vulture, mypy, bandit, file-length, pip-audit, lock-sync (+ radon CC report) |
 
 ---
 
@@ -1597,7 +1597,7 @@ bullet-point summaries. `_MAX_CHUNK_CHARS = 4000`.
 
 ### 12.1 Import Linter Contracts
 
-Enforced via `import-linter` in `setup.cfg` — prevents forbidden dependencies:
+Enforced via `import-linter` in `pyproject.toml` (`[tool.importlinter]`) — prevents forbidden dependencies:
 
 | Contract | Source | Forbidden |
 |----------|--------|-----------|
@@ -1616,6 +1616,7 @@ Enforced via `import-linter` in `setup.cfg` — prevents forbidden dependencies:
 | Type check | mypy | Baseline-gated (blocks new errors) |
 | Security SAST | bandit | Medium/High severity blocked |
 | Dependency audit | pip-audit | CVE/GHSA/PYSEC (blocking) |
+| Lock sync | `bin/lock_sync_check.py` | Fails if `requirements.txt` (auto-generated artifact) drifts from `uv.lock` |
 | Lint + format | ruff | Python linting + formatting |
 
 **LLOC gate counts Logical Lines of Code** — excludes blanks, comments, and
