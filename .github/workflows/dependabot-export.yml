@@ -17,7 +17,7 @@ jobs:
   export-requirements:
     name: Regenerate requirements.txt from uv.lock
     runs-on: windows-latest
-    if: github.actor == 'dependabot[bot]'
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
 
     permissions:
       contents: write
