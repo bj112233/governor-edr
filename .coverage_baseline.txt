@@ -1,6 +1,6 @@
 # Coverage baseline — ratchet, do NOT lower.
 # Regenerate after adding tests: python bin/coverage_gate.py --regenerate
-Total: 76.97%
+Total: 77.08%
 # Security functions tracked: 53
 services/_skills_engine/_process_runner.py::spawn_and_wait = 7
 services/action_tools/defender.py::defender_scan = 23
@@ -48,7 +48,7 @@ services/tools/system_tools.py::_terminate_process_handler = 0
 services/two_factor.py::_check_lockout = 1
 services/two_factor.py::initiate_challenge = 0
 services/two_factor.py::verify_challenge = 8
-services/web_c2_auth.py::check_basic_auth = 0
+services/web_c2_auth.py::check_basic_auth = 3
 services/web_c2_auth.py::client_ip_allowed = 0
 services/web_c2_commands.py::_initiate_2fa = 0
 services/web_c2_commands.py::_verify_2fa = 0

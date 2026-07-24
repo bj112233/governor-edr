@@ -19,6 +19,7 @@ class TestSecurityHeaders:
         """Security headers must be present even on auth failures."""
         import aiohttp.web
         from aiohttp.test_utils import TestClient, TestServer
+
         from services.web_c2 import routes, security_headers_middleware, security_middleware
 
         with patch.dict(os.environ, {"WEB_C2_AUTH_PASSWORD": "test", "WEB_C2_LAN_ALLOWED": ""}):
