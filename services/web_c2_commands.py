@@ -82,13 +82,71 @@ def _validate_kill_process_target(target: str | None) -> tuple[int | None, dict[
     return pid, None
 
 
-async def _initiate_reload_hashes_2fa() -> dict[str, Any]:
-    """Step 1 of reload_hashes: initiate 2FA challenge and send OTP via Telegram."""
-    from services.interfaces import get_message_gateway
+async def _dispatch_kill_process(target: str | None) -> dict[str, Any]:
+    """Handle kill_process command with target validation."""
+    pid, err = _validate_kill_process_target(target)
+    if err is not None:
+        return err
+    return await execute_kill_process(pid)
+
+
+# ── Sensitive operation handlers ────────────────────────────────────────────
+# Each handler runs AFTER 2FA verification. Add new sensitive operations here
+# AND to SENSITIVE_OPERATIONS in two_factor.py.
+
+async def _exec_reload_hashes() -> dict[str, Any]:
+    """Execute reload_hashes after 2FA verification."""
+    from services.self_whitelist import reload_hashes
+
+    results = reload_hashes()
+    logger.info("[WebC2] reload_hashes executed after 2FA verification")
+    return {
+        "status": "ok",
+        "message": f"Reloaded {len(results)} hash(es) after 2FA verification",
+        "details": results,
+    }
+
+
+# Registry: sensitive command → execution handler (runs post-2FA)
+_SENSITIVE_HANDLERS: dict[str, Any] = {
+    "reload_hashes": _exec_reload_hashes,
+}
+
+
+async def _send_otp_via_telegram(cmd: str, challenge_id: str, otp: str) -> None:
+    """Send OTP out-of-band via Telegram MessageGateway."""
+    try:
+        from services.interfaces import get_message_gateway
+        gateway = get_message_gateway()
+    except Exception:
+        gateway = None
+
+    if gateway is None:
+        logger.warning("[WebC2] No message gateway — OTP cannot be delivered out-of-band")
+        return
+
+    from config import TELEGRAM_CHAT_ID
+
+    if not TELEGRAM_CHAT_ID:
+        logger.warning("[WebC2] TELEGRAM_CHAT_ID not set — OTP cannot be delivered out-of-band")
+        return
+
+    await gateway.send_message(
+        TELEGRAM_CHAT_ID,
+        f"🔐 **Step-Up Authentication Required**\n\n"
+        f"Operation: `{cmd}`\n"
+        f"Challenge ID: `{challenge_id[:8]}...`\n"
+        f"OTP Code: `{otp}`\n\n"
+        f"⏱️ Expires in 60 seconds. Use this code in the C2 to complete the operation.",
+    )
+
+
+async def _initiate_2fa(cmd: str) -> dict[str, Any]:
+    """Initiate 2FA challenge for a sensitive operation. Returns pending_2fa response."""
     from services.two_factor import OTPRateLimitError, initiate_challenge
 
     try:
-        result = initiate_challenge("reload_hashes")
+        result = initiate_challenge(cmd)
     except OTPRateLimitError as exc:
         return {
             "status": "error",
@@ -98,27 +156,9 @@ async def _initiate_reload_hashes_2fa() -> dict[str, Any]:
         }
     if result is None:
         return {"status": "error", "error": "2FA initiation failed", "code": 500}
+
     new_challenge_id, otp = result
-
-    # Send OTP out-of-band via Telegram (MessageGateway)
-    gateway = get_message_gateway()
-    if gateway is not None:
-        from config import TELEGRAM_CHAT_ID
-
-        if TELEGRAM_CHAT_ID:
-            await gateway.send_message(
-                TELEGRAM_CHAT_ID,
-                f"🔐 **Step-Up Authentication Required**\n\n"
-                f"Operation: `reload_hashes` (hash hot-reload)\n"
-                f"Challenge ID: `{new_challenge_id[:8]}...`\n"
-                f"OTP Code: `{otp}`\n\n"
-                f"⏱️ Expires in 60 seconds. Use this code in the C2 to complete the operation.",
-            )
-        else:
-            logger.warning("[WebC2] TELEGRAM_CHAT_ID not set — OTP cannot be delivered out-of-band")
-    else:
-        logger.warning("[WebC2] No message gateway — OTP cannot be delivered out-of-band")
-
+    await _send_otp_via_telegram(cmd, new_challenge_id, otp)
     return {
         "status": "pending_2fa",
         "message": "2FA challenge initiated. Check Telegram for OTP code.",
@@ -127,34 +167,17 @@ async def _initiate_reload_hashes_2fa() -> dict[str, Any]:
     }
 
 
-async def _dispatch_kill_process(target: str | None) -> dict[str, Any]:
-    """Handle kill_process command with target validation."""
-    pid, err = _validate_kill_process_target(target)
-    if err is not None:
-        return err
-    return await execute_kill_process(pid)
-
-
-async def _dispatch_reload_hashes(
-    otp_code: str | None, challenge_id: str | None
-) -> dict[str, Any]:
-    """Handle reload_hashes command with 2FA step-up authentication."""
-    from services.self_whitelist import reload_hashes
+def _verify_2fa(cmd: str, otp_code: str | None, challenge_id: str) -> dict[str, Any] | None:
+    """Verify 2FA. Returns error dict on failure, None on success."""
     from services.two_factor import verify_challenge
 
-    # Step 1: If no challenge_id → initiate 2FA, send OTP via Telegram
-    if challenge_id is None:
-        return await _initiate_reload_hashes_2fa()
-
-    # Step 2: challenge_id provided → verify OTP, then execute
     if otp_code is None:
         return {
             "status": "error",
-            "error": "OTP code required for reload_hashes",
+            "error": f"OTP code required for {cmd}",
             "challenge_id": challenge_id,
             "code": 403,
         }
-
     if not verify_challenge(challenge_id, otp_code):
         return {
             "status": "error",
@@ -162,15 +185,34 @@ async def _dispatch_reload_hashes(
             "challenge_id": challenge_id,
             "code": 403,
         }
+    return None
 
-    # 2FA verified — execute the reload
-    results = reload_hashes()
-    logger.info("[WebC2] reload_hashes executed after 2FA verification (challenge=%s...)", challenge_id[:8])
-    return {
-        "status": "ok",
-        "message": f"Reloaded {len(results)} hash(es) after 2FA verification",
-        "details": results,
-    }
+
+async def _dispatch_sensitive(
+    cmd: str,
+    target: str | None,
+    otp_code: str | None,
+    challenge_id: str | None,
+) -> dict[str, Any]:
+    """Generic 2FA gate for sensitive operations.
+
+    Step 1: If no challenge_id → initiate 2FA, send OTP via Telegram.
+    Step 2: challenge_id + otp_code → verify, then execute the handler.
+    """
+    if challenge_id is None:
+        return await _initiate_2fa(cmd)
+
+    err = _verify_2fa(cmd, otp_code, challenge_id)
+    if err is not None:
+        return err
+
+    handler = _SENSITIVE_HANDLERS.get(cmd)
+    if handler is None:
+        logger.error("[WebC2] No handler registered for sensitive command: %s", cmd)
+        return {"status": "error", "error": f"No handler for {cmd}", "code": 500}
+
+    logger.info("[WebC2] %s executed after 2FA verification (challenge=%s...)", cmd, challenge_id[:8])
+    return await handler()
 
 
 async def dispatch_command(
@@ -193,11 +235,16 @@ async def dispatch_command(
     if not cmd:
         return {"status": "error", "error": "missing cmd", "code": 400}
 
+    # Generic 2FA gate: any command in SENSITIVE_OPERATIONS must pass step-up
+    # authentication before dispatch. This prevents new sensitive commands from
+    # bypassing 2FA if someone forgets to wire the check per-command.
+    from services.two_factor import SENSITIVE_OPERATIONS
+
+    if cmd in SENSITIVE_OPERATIONS:
+        return await _dispatch_sensitive(cmd, target, otp_code, challenge_id)
+
     if cmd == "kill_process":
         return await _dispatch_kill_process(target)
-
-    if cmd == "reload_hashes":
-        return await _dispatch_reload_hashes(otp_code, challenge_id)
 
     return {"status": "error", "error": f"Unknown command: {cmd}", "code": 400}
 

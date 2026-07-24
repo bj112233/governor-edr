@@ -35,8 +35,18 @@ __all__ = [
     "SENSITIVE_OPERATIONS",
 ]
 
-# Operations that require step-up 2FA
-SENSITIVE_OPERATIONS = frozenset({"reload_hashes"})
+# Operations that require step-up 2FA.
+# These are operations where a stolen C2 session could cause lasting damage:
+# - reload_hashes: modifies the trusted-hash whitelist (attacker could whitelist malware)
+# - unblock_ip: removes a firewall block (attacker could unblock their C2 server)
+# - service_stop: stops a Windows service (attacker could disable security tools)
+# - whitelist_edit: modifies YARA allowlist or trusted_devices (attacker could suppress alerts)
+SENSITIVE_OPERATIONS = frozenset({
+    "reload_hashes",
+    "unblock_ip",
+    "service_stop",
+    "whitelist_edit",
+})
 
 _CHALLENGE_TTL = 60  # seconds
 _MAX_VERIFY_ATTEMPTS = 3
