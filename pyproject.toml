@@ -64,7 +64,7 @@ dependencies = [
     "jiter>=0.14.0",
 
     # ── Pydantic V2 (strict typing) ────────────────────────────────────────
-    "pydantic>=2.9.0,<2.13",     # upper bound: 2.13 changed validator behavior
+    "pydantic>=2.13.4,<2.14",     # upper bound: 2.13 changed validator behavior
     "annotated-doc>=0.0.4",
     "annotated-types>=0.7.0",
     "typing-inspection>=0.4.2",
