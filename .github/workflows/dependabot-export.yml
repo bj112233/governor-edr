@@ -23,7 +23,7 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Check out the PR head (Dependabot's branch), not the base.
           ref: ${{ github.head_ref }}
