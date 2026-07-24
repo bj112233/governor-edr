@@ -70,7 +70,7 @@ jobs:
       - name: Run tests with coverage
         env:
           PYTHONIOENCODING: utf-8
-        run: uv run python -m pytest tests/ -v --tb=short --timeout=30 -x --cov=services --cov-report=json:coverage.json --cov-report=
+        run: uv run python -m pytest tests/ -v --tb=short --timeout=30 --cov=services --cov-report=json:coverage.json --cov-report=
 
       - name: Coverage Gate (ratchet)
         env:
