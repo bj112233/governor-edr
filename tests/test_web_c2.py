@@ -11,6 +11,34 @@ from services.web_c2_auth import check_basic_auth, client_ip_allowed
 from services.web_c2_data import extract_reason, get_gpu_vram_stats, get_health, parse_trigger
 
 
+class TestSecurityHeaders:
+    """Verify security headers are present on all responses."""
+
+    @pytest.mark.asyncio
+    async def test_headers_on_401(self):
+        """Security headers must be present even on auth failures."""
+        import aiohttp.web
+        from aiohttp.test_utils import TestClient, TestServer
+        from services.web_c2 import routes, security_headers_middleware, security_middleware
+
+        with patch.dict(os.environ, {"WEB_C2_AUTH_PASSWORD": "test", "WEB_C2_LAN_ALLOWED": ""}):
+            app = aiohttp.web.Application(middlewares=[security_headers_middleware, security_middleware])
+            app.add_routes(routes)
+            server = TestServer(app)
+            client = TestClient(server)
+            await client.start_server()
+            try:
+                resp = await client.get("/")
+                # 401 (no auth) or 403 (Session 0 boundary) — headers must be present either way
+                assert resp.status in (401, 403)
+                assert resp.headers["X-Frame-Options"] == "DENY"
+                assert resp.headers["X-Content-Type-Options"] == "nosniff"
+                assert "frame-ancestors 'none'" in resp.headers["Content-Security-Policy"]
+                assert resp.headers["Referrer-Policy"] == "no-referrer"
+            finally:
+                await client.close()
+
+
 class TestClientIpAllowed:
     """Layer 3: IP-based access control tests."""
 
