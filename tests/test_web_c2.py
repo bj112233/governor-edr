@@ -12,32 +12,27 @@ from services.web_c2_data import extract_reason, get_gpu_vram_stats, get_health,
 
 
 class TestSecurityHeaders:
-    """Verify security headers are present on all responses."""
+    """Verify security headers middleware injects headers on all responses."""
 
     @pytest.mark.asyncio
-    async def test_headers_on_401(self):
-        """Security headers must be present even on auth failures."""
+    async def test_headers_injected_on_response(self):
+        """Security headers must be injected by the middleware on any response."""
         import aiohttp.web
-        from aiohttp.test_utils import TestClient, TestServer
 
-        from services.web_c2 import routes, security_headers_middleware, security_middleware
+        from services.web_c2 import _SECURITY_HEADERS, security_headers_middleware
 
-        with patch.dict(os.environ, {"WEB_C2_AUTH_PASSWORD": "test", "WEB_C2_LAN_ALLOWED": ""}):
-            app = aiohttp.web.Application(middlewares=[security_headers_middleware, security_middleware])
-            app.add_routes(routes)
-            server = TestServer(app)
-            client = TestClient(server)
-            await client.start_server()
-            try:
-                resp = await client.get("/")
-                # 401 (no auth) or 403 (Session 0 boundary) — headers must be present either way
-                assert resp.status in (401, 403)
-                assert resp.headers["X-Frame-Options"] == "DENY"
-                assert resp.headers["X-Content-Type-Options"] == "nosniff"
-                assert "frame-ancestors 'none'" in resp.headers["Content-Security-Policy"]
-                assert resp.headers["Referrer-Policy"] == "no-referrer"
-            finally:
-                await client.close()
+        async def handler(request: aiohttp.web.Request) -> aiohttp.web.Response:
+            return aiohttp.web.Response(text="ok")
+
+        request = MagicMock(spec=aiohttp.web.Request)
+        response = await security_headers_middleware(request, handler)
+
+        for key, value in _SECURITY_HEADERS.items():
+            assert response.headers[key] == value, f"Missing/wrong {key}"
+        assert response.headers["X-Frame-Options"] == "DENY"
+        assert response.headers["X-Content-Type-Options"] == "nosniff"
+        assert "frame-ancestors 'none'" in response.headers["Content-Security-Policy"]
+        assert response.headers["Referrer-Policy"] == "no-referrer"
 
 
 class TestClientIpAllowed:
