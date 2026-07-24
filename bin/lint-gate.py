@@ -63,7 +63,7 @@ def run_import_linter(title: str) -> bool:
     try:
         from importlinter.cli import lint_imports
 
-        rc = lint_imports(config_filename="setup.cfg")
+        rc = lint_imports(config_filename="pyproject.toml")
         ok = rc == 0
     except Exception as exc:
         print(f"Error: {exc}", file=sys.stderr)
@@ -208,6 +208,13 @@ def run_bandit(title: str) -> bool:
     return ok
 
 
+def run_lock_sync_check(title: str) -> bool:
+    """Verify requirements.txt (auto-generated artifact) matches uv.lock."""
+    from lock_sync_check import run_gate as _run
+
+    return _run(title)
+
+
 def run_pip_audit(title: str) -> bool:
     """Report dependency vulnerabilities and block commit on known CVEs.
 
@@ -337,6 +344,7 @@ def main() -> int:
         run_cognitive_complexity_gate("Cognitive Complexity Gate (ratchet, max 15)"),
         run_coverage_gate("Coverage Gate (ratchet)") if not args.fast else True,
         run_pip_audit("Dependency Audit (pip-audit)"),
+        run_lock_sync_check("Lock Sync (uv.lock ↔ requirements.txt)"),
     ]
 
     print(f"\n{'=' * 60}")
