@@ -1692,3 +1692,16 @@ agent and a toy.
 | Should this PID be killed? | LLM decides (dangerous) | 0 — provenance gate (trusted vs tainted) |
 
 Every row in that table is a token saved and a hallucination prevented.
+
+---
+
+## Appendix B — GBNF Grammar Spike (2026-07-24)
+
+A spike tested whether GBNF grammar enforcement could eliminate the 85%
+structural ReAct failures (no `Action:` line, broken JSON). Key finding:
+KoboldCpp's OpenAI chat completions endpoint does **not** reliably enforce
+grammar (unescaped quotes pass through), while the raw Kobold API does.
+The grammar works with zero latency penalty, but reliable enforcement
+requires switching to the raw API — deferred as a medium-sized change.
+The harness (`tests/golden/`) is preserved as golden-transcript test
+infrastructure.

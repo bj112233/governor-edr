@@ -2511,3 +2511,67 @@ agent and a toy.
 | Should this PID be killed? | LLM decides (dangerous) | 0 — provenance gate (trusted vs tainted) |
 
 Every row in that table is a token saved and a hallucination prevented.
+
+---
+
+## Appendix B — GBNF Grammar Spike (2026-07-24)
+
+### Motivation
+
+Log analysis of 585K lines across all `logs/*.log` revealed **675 ReAct parser
+events**. Categorization:
+
+| Category | Count | % | GBNF impact |
+|----------|-------|---|-------------|
+| Structural (no ReAct structure / broken JSON) | 575 | 85% | **Fixable** |
+| Schema (valid JSON, missing fields) | 42 | 6% | Partial |
+| Semantic (structure OK, wrong content) | 58 | 8% | **Not fixable** |
+
+85% of failures are structural — the model writes `Thought:` but forgets
+`Action:`, or produces unescaped quotes in JSON (`חו"ל`). GBNF grammar
+enforcement can eliminate these.
+
+### Spike Design
+
+**Stage 0**: Built `tests/golden/react_harness.py` — a reusable harness that
+runs saved prompts against the LLM with/without grammar and measures
+parse-failure rate, latency, and thought quality. This is also the foundation
+for golden-transcript regression tests.
+
+**Stage 1**: Minimal GBNF grammar (`tests/golden/react_grammar.gbnf`) that
+forces the ReAct envelope: `Thought: <text> Action: <tool_name> Action Input:
+<json>`. Tool name validation stays in Python (registry is dynamic).
+
+**Stage 2**: 30 multi-turn prompts simulating the real failure scenario
+(after `<tool_output>` injection — where 85% of failures occur).
+
+### Results
+
+| Metric | Without grammar | With grammar (OpenAI API) | With grammar (raw Kobold API) |
+|--------|-----------------|--------------------------|-------------------------------|
+| Structural failures | 2/30 (6%) | 1/30 (3%) | 0/30 (0%) |
+| Latency avg | 4819ms | 4813ms (-0.1%) | — |
+| JSON escaping | Unreliable | **Not enforced** | **Fully enforced** |
+
+### Critical Finding
+
+**KoboldCpp's OpenAI chat completions endpoint (`/v1/chat/completions`) does
+NOT reliably enforce GBNF grammar.** The `grammar` field in `extra_body` is
+accepted but grammar enforcement is inconsistent — unescaped quotes in JSON
+strings pass through, and the `Action Input:` line is sometimes dropped.
+
+The raw Kobold API (`/api/v1/generate`) **does** enforce grammar correctly:
+unescaped `"` in `דו"ח` is properly escaped to `דו\"ח`, and the full ReAct
+structure is always produced.
+
+### Decision
+
+**Deferred.** The grammar works and has zero latency penalty, but reliable
+enforcement requires switching ReAct calls from the OpenAI client to the raw
+Kobold API. This is a medium-sized change (manual chat template construction,
+loss of OpenAI client compatibility) that should be weighed against the
+current parser fallback architecture, which already salvages 85% of
+structural failures at zero implementation cost.
+
+The harness (`tests/golden/`) is preserved as golden-transcript test
+infrastructure for future prompt/model validation.
