@@ -9,7 +9,7 @@
 # Pinning policy: wide lower bounds here, exact pins come from uv.lock.
 # Manual upper bounds ONLY where a major bump is known to break the API:
 #   - aiogram>=3.29,<4   (aiogram 4 is a breaking rewrite)
-#   - pydantic<2.13      (existing guard, 2.13 changed validator behavior)
+#   - pydantic>=2.9.0   (2.13 tested OK — full suite + DeprecationWarning as error)
 
 [project]
 name = "sentinel"
@@ -64,7 +64,7 @@ dependencies = [
     "jiter>=0.14.0",
 
     # ── Pydantic V2 (strict typing) ────────────────────────────────────────
-    "pydantic>=2.9.0,<2.13",     # upper bound: 2.13 changed validator behavior
+    "pydantic>=2.9.0",     # 2.13 tested: full suite + -W error::DeprecationWarning passes
     "annotated-doc>=0.0.4",
     "annotated-types>=0.7.0",
     "typing-inspection>=0.4.2",
