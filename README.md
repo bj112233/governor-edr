@@ -91,6 +91,9 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 
 # 3. Install dependencies
+#    Option A — uv (preferred, deterministic lockfile):
+uv sync --frozen
+#    Option B — pip fallback (uses auto-generated requirements.txt):
 pip install -r requirements.txt
 
 # 4. Configure from example files
@@ -117,6 +120,12 @@ winget install gitleaks.gitleaks
 # 9. Start the bot
 .\.venv\Scripts\python.exe main.py
 ```
+
+> **Dependency management:** `pyproject.toml` is the manifest (runtime deps
+> in `[project]`, dev/CI tooling in `[dependency-groups] dev`).
+> `uv.lock` pins exact versions. `requirements.txt` is an auto-generated
+> artifact (`uv export`) for pip-only environments — do not edit it manually.
+> The lint gate verifies they stay in sync.
 
 ### API Keys
 
