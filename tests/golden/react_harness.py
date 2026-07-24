@@ -227,7 +227,7 @@ def print_report(results: list[RunResult], label: str) -> None:
     print(f"\n{'='*60}")
     print(f"  {label} ({total} prompts)")
     print(f"{'='*60}")
-    print(f"  Parse results:")
+    print("  Parse results:")
     for cat in ["OK", "STRUCTURAL", "SCHEMA", "SEMANTIC", "ERROR"]:
         count = categories.get(cat, 0)
         if count:

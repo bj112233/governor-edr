@@ -111,8 +111,8 @@ MULTI_TURN_QUERIES = [
     ("mt16_just_thought", f"{TOOL_OUTPUT_SNAPSHOT}\n\nContinue to the next subtask.", None),
     ("mt17_next_subtask_vague", f"{TOOL_OUTPUT_PROCS}\n\nSubtask 2 is done. Move to the next step.", None),
     ("mt18_final_step", f"{TOOL_OUTPUT_SNAPSHOT}\n\nSubtask 5: Final summary. Report all findings in Hebrew.", "final_answer"),
-    ("mt19_no_data", f"<tool_output>\nNo data returned from tool.\n</tool_output>\n\nContinue.", None),
-    ("mt20_empty_output", f"<tool_output>\n\n</tool_output>\n\nAnalyze and continue.", None),
+    ("mt19_no_data", "<tool_output>\nNo data returned from tool.\n</tool_output>\n\nContinue.", None),
+    ("mt20_empty_output", "<tool_output>\n\n</tool_output>\n\nAnalyze and continue.", None),
 
     # System warning injection (happens after format collapse)
     ("mt21_after_warning", f"{TOOL_OUTPUT_SNAPSHOT}\n\n[SYSTEM WARNING] You provided a 'Thought' but skipped the 'Action' JSON. You MUST output valid JSON tool calls using the ReAct format.", None),
