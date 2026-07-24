@@ -1,0 +1,30 @@
+# GBNF grammar for textual ReAct format.
+# Forces the envelope: Thought: <text> Action: <tool_name> Action Input: <json>
+#
+# Tool name validation stays in Python (the registry is dynamic).
+# This grammar only guarantees structural correctness.
+#
+# Usage: pass as `grammar` field in extra_body to KoboldCpp /v1/chat/completions
+
+root ::= "Thought: " thought-text "\nAction: " tool-name "\nAction Input: " json-object
+
+# Thought: any text except newline (single line, ≤100 chars by convention)
+thought-text ::= [^\n]*
+
+# Tool name: alphanumeric + underscore + hyphen
+tool-name ::= [a-zA-Z0-9_-]+
+
+# Minimal JSON object (envelope only)
+json-object ::= "{" ws "\"text\"" ws ":" ws json-string ws "}"
+                | "{" ws json-pair (ws "," ws json-pair)* ws "}"
+                | "{" ws "}"
+
+json-pair   ::= json-string ws ":" ws json-value
+json-value  ::= json-string | json-object | json-number | "true" | "false" | "null"
+json-string ::= "\"" json-chars? "\""
+json-chars  ::= json-char+
+json-char   ::= [^"\\] | "\\" escape
+escape       ::= ["\\\/bfnrt] | "u" [0-9a-fA-F]{4}
+json-number ::= "-"? ([0-9] | [1-9] [0-9]*) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
+
+ws ::= [ \t]*
