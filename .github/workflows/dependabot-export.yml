@@ -43,6 +43,7 @@ jobs:
         run: uv export --format requirements.txt --no-emit-project --output-file requirements.txt
 
       - name: Commit if changed
+        shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
