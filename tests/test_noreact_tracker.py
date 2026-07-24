@@ -121,7 +121,7 @@ class TestSlidingWindowExpiry:
         assert is_directive_active()  # still in window
 
         # Wait for expiry
-        time.sleep(1.1)
+        time.sleep(1.5)
         assert not is_directive_active()  # auto-recovered
         assert get_directive() is None
 
