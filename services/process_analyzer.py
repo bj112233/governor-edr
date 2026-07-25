@@ -20,6 +20,7 @@ function interchangeably.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 
@@ -101,6 +102,51 @@ def register_malicious_hash(sha256: str) -> None:
     h = sha256.lower().strip()
     if len(h) == 64:
         _KNOWN_BAD_HASHES.add(h)
+
+
+def known_bad_hash_count() -> int:
+    """Return the current size of the known-bad hash set (for monitoring/tests)."""
+    return len(_KNOWN_BAD_HASHES)
+
+
+async def sync_hashes_from_threatfox() -> int:
+    """Sync SHA256 IOCs from ThreatFox into the known-bad hash set.
+
+    Called by the scheduler every 2h (alongside feed_refresh). Pulls
+    ThreatFox IOCs with confidence >= 50, filters for sha256_hash type,
+    and registers each via register_malicious_hash.
+
+    Trade-off (documented): the set is always "behind" the live feed —
+    a hash published seconds ago won't be detected until the next sync
+    (up to 2h lag). This is acceptable: the sync check is instant and
+    safe in the consumer thread; async per-event lookup would add
+    latency and network dependency to the hot path.
+
+    Returns the number of new hashes added.
+    """
+    from services.threat_feeds import _fetch_threatfox_sync
+
+    before = len(_KNOWN_BAD_HASHES)
+    try:
+        iocs = await asyncio.to_thread(_fetch_threatfox_sync, 1)
+    except Exception as exc:
+        logger.warning("[ProcessAnalyzer] ThreatFox hash sync failed: %s", exc)
+        return 0
+    added = 0
+    for ioc in iocs:
+        ioc_type = (ioc.get("ioc_type") or "").lower()
+        if ioc_type != "sha256_hash":
+            continue
+        ioc_val = (ioc.get("ioc") or "").strip().lower()
+        if len(ioc_val) == 64 and ioc_val not in _KNOWN_BAD_HASHES:
+            register_malicious_hash(ioc_val)
+            added += 1
+    after = len(_KNOWN_BAD_HASHES)
+    logger.info(
+        "[ProcessAnalyzer] ThreatFox hash sync: +%d new (set: %d → %d)",
+        added, before, after,
+    )
+    return added
 
 
 def _check_hash_reputation(event: ProcessEvent) -> CmdlineMatch | None:

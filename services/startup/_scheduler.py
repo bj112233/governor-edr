@@ -318,6 +318,19 @@ def setup_scheduler() -> AsyncIOScheduler:
     )
     logger.info("[Scheduler] Threat feed refresh every 2h + startup pre-fetch")
 
+    # ThreatFox SHA256 hash sync — every 2h. Populates _KNOWN_BAD_HASHES
+    # so T1027 (hash reputation) has real data. Without this, T1027 is a no-op.
+    async def _hash_sync_job() -> None:
+        from services.process_analyzer import sync_hashes_from_threatfox
+        added = await sync_hashes_from_threatfox()
+        if added:
+            logger.info("[Scheduler] ThreatFox hash sync: +%d new malicious hashes", added)
+
+    _hs = _timed(_hash_sync_job, "hash_sync", 30)
+    scheduler.add_job(_hs, "interval", hours=2, id="hash_sync", max_instances=1, coalesce=True, misfire_grace_time=300)
+    scheduler.add_job(_hs, "date", run_date=datetime.now(UTC), id="hash_sync_startup", replace_existing=True)
+    logger.info("[Scheduler] ThreatFox hash sync every 2h + startup pre-fetch")
+
     # Weekly Auto-Reflection (Critic Node) — Friday 16:00
     # Offline batch self-critique: error lessons + telemetry + hunt stats → LLM reflection
     from services.reflection_agent import run_weekly_reflection
