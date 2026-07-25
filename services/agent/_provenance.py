@@ -36,6 +36,14 @@ _IP_WHITELIST = {"127.0.0.1", "0.0.0.0", "255.255.255.255"}
 # ── Trust classification ──
 # Trusted: tools that read live Windows system state via WMI/psutil/netsh.
 # Their output is ground truth — entities they report are real system state.
+#
+# Kernel-trusted tier (strongest): sysmon_consumer + analyze_process_event
+# read from Sysmon ETW kernel telemetry. Stronger than psutil-based tools
+# because process hollowing can lie to user-space APIs (psutil) but cannot
+# easily lie to Sysmon's kernel hooks. Currently classified as trusted
+# (same execution gate); a separate KERNEL_TRUSTED_TOOLS tier can be split
+# out if future logic needs to distinguish (e.g. auto-trust without
+# cross-verification).
 TRUSTED_SYSTEM_TOOLS: frozenset[str] = frozenset(
     {
         "get_system_snapshot",
@@ -57,6 +65,7 @@ TRUSTED_SYSTEM_TOOLS: frozenset[str] = frozenset(
         "get_firewall_drops",
         "get_scheduled_tasks_detail",
         "analyze_cmdline",
+        "analyze_process_event",  # Sysmon-enriched wrapper (kernel-trusted)
         "query_baseline_deviation",
         "sentinel_get_pending_events",
         "scan_lan",
