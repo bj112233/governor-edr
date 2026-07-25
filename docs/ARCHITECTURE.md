@@ -2631,9 +2631,13 @@ A **production bug** was also discovered: `_cleanup_expired` used
 `TwoFactorChallenge` dataclass. Fixed to `ch.consumed`.
 
 **Result: 40% → 73%** (above 70% threshold). The remaining 80 survivors are
-equivalent mutants (e.g., `>= → ==` on max_attempts is equivalent because
-attempts never exceeds 3) or non-security-critical (Sub_* on retry_after
-reporting value — blocking still works).
+equivalent mutants or non-security-critical. The `>= → ==` equivalence on
+`max_attempts_reached` holds because `verify_challenge` is a fully synchronous
+function with no `await` points — it is atomic within the asyncio event loop,
+so `attempts` can never exceed 3 (the challenge is deleted at exactly
+`attempts == 3` before another coroutine can observe it). Other survivors:
+`Sub_*` on retry_after reporting value (blocking still works), NumberReplacer
+on non-security constants (OTP format width, token_hex length).
 
 ### Key Finding: TDD Empirically Validated
 
