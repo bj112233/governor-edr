@@ -204,58 +204,93 @@ def _rule_based_analysis(snapshot: dict) -> str:
     return f"{severity} - {category} - ניתוח heuristic (LLM unavailable)"
 
 
+def _sysmon_alert_report(snapshot: dict[str, Any]) -> str:
+    """Build a human-readable report from a Sysmon process alert.
+
+    Sysmon alerts already have TTP analysis from analyze_process_event
+    (technique_id, score, signals). This formats them into a report
+    without LLM — the LLM worker bypasses LLM for source="sysmon".
+    """
+    matches = snapshot.get("matches", [])
+    pid = snapshot.get("pid", "?")
+    name = snapshot.get("name", "?")
+    image = snapshot.get("image", "")
+    lines = [f"🚨 Sysmon TTP Alert — PID {pid} ({name})"]
+    if image:
+        lines.append(f"Image: {image}")
+    for m in matches:
+        tid = m.get("technique_id", "?")
+        score = m.get("score", 0)
+        mname = m.get("name", "?")
+        signals = "; ".join(m.get("signals", [])[:2])
+        lines.append(f"  MITRE {tid} ({mname}) score={score}: {signals}")
+    return "\n".join(lines)
+
+
+async def _handle_sysmon_alert(snapshot: dict[str, Any]) -> None:
+    """Process a Sysmon source alert — bypass LLM, emit directly."""
+    sysmon_report = _sysmon_alert_report(snapshot)
+    await send_alert_event(snapshot, sysmon_report)
+    await save_alert("sysmon_process", sysmon_report)
+    logger.info("✅ Sysmon alert processed (PID %s).", snapshot.get("pid"))
+
+
+async def _process_snapshot_alert(snapshot: dict[str, Any]) -> None:
+    """Process a standard (non-sysmon) alert snapshot through LLM or rule-based."""
+    logger.info("🔍 Processing queued alert snapshot...")
+    disk_str = ", ".join(snapshot.get("disk_alerts", [])) or "OK"
+
+    top_procs_list = snapshot.get("top_procs", [])
+    procs_str = ", ".join(p.get("name", "unknown") for p in top_procs_list if isinstance(p, dict)) or "None"
+
+    sys_data = f"CPU: {snapshot.get('cpu', 0)}%, RAM: {snapshot.get('mem', 0)}%, Disk: {disk_str}, Heavy Procs: {procs_str}"
+
+    susp_net = snapshot.get("suspicious_net", [])
+    if susp_net:
+        net_data = "\n".join(f"- {conn}" for conn in susp_net)
+    else:
+        net_data = "No suspicious connections"
+
+    _soc_prompt = _load_soc_prompt()
+    report: str | None = None
+    from services.llm_bridge import is_llm_ready
+
+    if not is_llm_ready():
+        logger.info("[LLM Worker] LLM not ready — skipping LLM call, using rule-based fallback")
+    else:
+        try:
+            report = await asyncio.wait_for(
+                analyze_data(
+                    _soc_prompt,
+                    f"=== SYSTEM ===\n{sys_data}\n\n=== NETWORK ===\n{net_data}",
+                    max_tokens=800,
+                ),
+                timeout=LLM_TIMEOUT,
+            )
+        except TimeoutError:
+            logger.warning("[LLM Worker] Analysis timeout — using rule-based fallback")
+            report = None
+
+    if not report or report.startswith("⚠️") or "ניתוח חלק" in report:
+        logger.info("[LLM Worker] Using rule-based fallback analysis")
+        report = _rule_based_analysis(snapshot)
+
+    report = strip_thinking_content(report or "")
+    await send_alert_event(snapshot, report)
+    await save_alert("system_monitor", report)
+    logger.info("✅ Alert processed and emitted to event bus.")
+
+
 async def llm_analysis_worker(alert_queue: asyncio.Queue[dict[str, Any]]) -> None:
     """Consumer: pulls snapshots from queue, runs LLM analysis, emits alerts."""
     logger.info("🧠 LLM Analysis Worker Online")
     while True:
         snapshot = await alert_queue.get()
         try:
-            logger.info("🔍 Processing queued alert snapshot...")
-            disk_str = ", ".join(snapshot.get("disk_alerts", [])) or "OK"
-
-            # Defensive process collection
-            top_procs_list = snapshot.get("top_procs", [])
-            procs_str = ", ".join(p.get("name", "unknown") for p in top_procs_list if isinstance(p, dict)) or "None"
-
-            sys_data = f"CPU: {snapshot.get('cpu', 0)}%, RAM: {snapshot.get('mem', 0)}%, Disk: {disk_str}, Heavy Procs: {procs_str}"
-
-            susp_net = snapshot.get("suspicious_net", [])
-            if susp_net:
-                # Send FULL enriched connections to LLM (not summarized)
-                # Each line: IP:port (Org / ASN) (process:pid)
-                net_data = "\n".join(f"- {conn}" for conn in susp_net)
+            if snapshot.get("source") == "sysmon":
+                await _handle_sysmon_alert(snapshot)
             else:
-                net_data = "No suspicious connections"
-
-            _soc_prompt = _load_soc_prompt()
-            report: str | None = None
-            from services.llm_bridge import is_llm_ready
-
-            if not is_llm_ready():
-                logger.info("[LLM Worker] LLM not ready — skipping LLM call, using rule-based fallback")
-            else:
-                try:
-                    report = await asyncio.wait_for(
-                        analyze_data(
-                            _soc_prompt,
-                            f"=== SYSTEM ===\n{sys_data}\n\n=== NETWORK ===\n{net_data}",
-                            max_tokens=800,
-                        ),
-                        timeout=LLM_TIMEOUT,
-                    )
-                except TimeoutError:
-                    logger.warning("[LLM Worker] Analysis timeout — using rule-based fallback")
-                    report = None
-
-            if not report or report.startswith("⚠️") or "ניתוח חלק" in report:
-                logger.info("[LLM Worker] Using rule-based fallback analysis")
-                report = _rule_based_analysis(snapshot)
-
-            report = strip_thinking_content(report or "")
-            await send_alert_event(snapshot, report)
-
-            await save_alert("system_monitor", report)
-            logger.info("✅ Alert processed and emitted to event bus.")
+                await _process_snapshot_alert(snapshot)
         except asyncio.CancelledError:
             raise
         except Exception as e:

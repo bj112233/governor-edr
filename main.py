@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 
-from config import TELEGRAM_CHAT_ID
+from config import SYSMON_ENRICHED_ANALYSIS_ENABLED, TELEGRAM_CHAT_ID
 from logging_config import setup_logging
 from services.breaking_news import (
     get_breaking_news_monitor,
@@ -257,6 +257,22 @@ async def main():
         mcp_task,
     ]
 
+    # SysmonConsumer — only start if enriched analysis is enabled AND Sysmon is running.
+    # The consumer feeds high-score TTP alerts into the same alert_queue; the
+    # llm_analysis_worker detects source="sysmon" and bypasses LLM (alerts already
+    # have TTP analysis from analyze_process_event).
+    sysmon_consumer = None
+    if SYSMON_ENRICHED_ANALYSIS_ENABLED:
+        try:
+            from services.sysmon_consumer import SysmonConsumer
+
+            sysmon_consumer = SysmonConsumer(alert_queue)
+            await sysmon_consumer.start()
+            logger.info("📡 SysmonConsumer started — feeding Event 1 alerts to queue")
+        except Exception as exc:
+            logger.warning("[Startup] SysmonConsumer failed to start (Sysmon not installed?): %s", exc)
+            sysmon_consumer = None
+
     # הוסף משימת Telegram אם הופעלה
     if tg_task:
         tasks.append(tg_task)
@@ -284,6 +300,11 @@ async def main():
         await _cancel_gracefully(all_tasks, timeout=10.0)
     finally:
         logger.info("🛑 Shutting down Sentinel...")
+        if sysmon_consumer is not None:
+            try:
+                await sysmon_consumer.stop()
+            except Exception:
+                logger.warning("[Shutdown] SysmonConsumer stop failed")
         if tg_channel:
             try:
                 await asyncio.wait_for(tg_channel.stop(), timeout=5.0)
