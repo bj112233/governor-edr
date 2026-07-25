@@ -1723,3 +1723,20 @@ was triaged and improved: 32 boundary tests added, score raised from
 
 No permanent mutation-testing gate added; surviving mutants documented
 as backlog. TDD-first policy adopted for new security-critical modules.
+
+---
+
+## Appendix D — Sysmon/ETW Spike (2026-07-25)
+
+Spike to replace psutil polling with real-time Sysmon telemetry. Three
+approaches evaluated: polling, EvtSubscribe (push on Event Log), ETW native
+(PyETWkit). **Selected EvtSubscribe** — push semantics with only pywin32
+dependency (no Rust wheel, no single-maintainer risk).
+
+Results: 0% burst loss (200/200 events), 100% asyncio bridge delivery
+(302/302), median bridge latency 203ms. Sysmon v15.21 installed with
+minimal config (Event 1 only). pywin32 DLL bootstrap added to
+`_winutil.py` for venv compatibility.
+
+Next: production consumer feeding `cmdline_analyzer`/`mitre_mapper`,
+startup health check, expansion to Network/Image/Registry events.

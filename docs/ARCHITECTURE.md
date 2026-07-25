@@ -2679,3 +2679,71 @@ suites than post-hoc testing. The 86% vs 40-57% gap is not noise.
 The surviving mutants are documented as a test-improvement backlog, not
 blocking. The TDD finding is incorporated into the development process:
 new security-critical modules should use TDD-first.
+
+---
+
+## Appendix D — Sysmon/ETW Spike (2026-07-25)
+
+### Motivation
+
+Replace psutil polling with real-time process telemetry via Sysmon Event 1
+(Process Create). Sysmon provides richer data: full command line, SHA256
+hash, parent process, signed image status — fields psutil cannot provide.
+
+### Approach Selection
+
+Three consumption approaches evaluated:
+
+| Approach | Library | Semantics | Dependency risk |
+|----------|---------|-----------|-----------------|
+| Polling Event Log | pywin32 (win32evtlog) | Poll loop | None (existing) |
+| **EvtSubscribe** | **pywin32 (win32evtlog)** | **Push (callback)** | **None (existing)** |
+| ETW native | PyETWkit (Rust wheel) | Push (blocking read) | Single-maintainer, 5 stars |
+
+**Selected: EvtSubscribe.** Push semantics (no polling, no loss) with only
+pywin32 dependency (already in the project). PyETWkit deferred as fallback
+due to single-maintainer bus-factor risk.
+
+### Spike Results
+
+Sysmon v15.21 installed with minimal config (Event 1 only, SHA256 hashing).
+EvtSubscribe tested with asyncio bridge (callback thread →
+`run_coroutine_threadsafe` → `asyncio.Queue` → async consumer).
+
+| Metric | Result | Criterion | Pass? |
+|--------|--------|-----------|-------|
+| Burst loss (100 procs) | **0%** (200/200) | <5% | Yes |
+| Bridge delivery rate | **100%** (302/302) | 100% | Yes |
+| Bridge latency median | 203ms | <500ms | Yes |
+| Bridge latency p95 | 843ms | — | Acceptable |
+| Callback arrival | sub-ms | — | Yes |
+
+**Key finding**: EvtSubscribe delivers 100% of events with zero loss under
+burst load. The asyncio bridge (consumer thread → run_coroutine_threadsafe)
+also delivers 100% — no events dropped in the cross-thread handoff.
+
+### Implementation Notes
+
+1. **pywin32 DLL bootstrap**: In venv, `win32evtlog.pyd` cannot find
+   `pywintypes312.dll` without explicit `os.add_dll_directory()`. Added
+   `_bootstrap_pywin32_dlls()` in `services/_winutil.py` (runs at import).
+
+2. **Sysmon config**: `onmatch="exclude"` with empty filter = log everything.
+   `onmatch="include"` with empty filter = log nothing (counterintuitive).
+   Config at `tools/sysmon/sysmon_config.xml`.
+
+3. **Admin requirement**: Sysmon Event Log channel access requires admin OR
+   Event Log Readers group (S-1-5-32-573). For production, add the bot's
+   service account to Event Log Readers — do not run the bot as admin.
+
+4. **Sysmon installation**: External dependency (Sysinternals). Requires
+   admin install: `Sysmon64.exe -accepteula -i sysmon_config.xml`. Config
+   updates: `Sysmon64.exe -c sysmon_config.xml`. No reboot needed.
+
+### Next Steps
+
+1. **Production consumer**: `services/sysmon_consumer.py` — EvtSubscribe +
+   asyncio bridge, parse Event 1 XML, feed to `cmdline_analyzer`/`mitre_mapper`
+2. **Startup health check**: Verify Sysmon service running, warn if not
+3. **Event type expansion**: Network Connect (3), Image Load (7), Registry (12-14)
+4. **Permission setup**: Document Event Log Readers group requirement in README
