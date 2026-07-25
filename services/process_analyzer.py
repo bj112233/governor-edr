@@ -200,6 +200,54 @@ def _check_integrity_level(event: ProcessEvent) -> CmdlineMatch | None:
     return None
 
 
+# ── Unsigned masquerading: unsigned binary in C:\Windows\ ──
+# Legitimate Windows system binaries are Authenticode-signed. An unsigned
+# binary in C:\Windows\System32\ is almost certainly masquerading (T1036).
+# This check requires the `signed` field, which Event 1 does NOT provide
+# (it comes from Event 7 — Image Load). When signed is None (Event 1 only,
+# or psutil path), this check skips — it cannot determine unsigned status
+# from Event 1 alone.
+_WINDOWS_DIRS = ("c:\\windows\\", "c:\\windows\\system32\\", "c:\\windows\\syswow64\\")
+
+
+def _check_unsigned_masquerading(event: ProcessEvent) -> CmdlineMatch | None:
+    """T1036 — unsigned binary masquerading as Windows system binary.
+
+    Returns a CmdlineMatch if:
+      - signed is False (explicitly unsigned, from Event 7 enrichment)
+      - image is in C:\\Windows\\ (system directory)
+
+    Returns None if:
+      - signed is None (Event 1 doesn't carry signature info — cannot
+        determine, skip to avoid false positives)
+      - signed is True (legitimately signed)
+      - image is None or not in a Windows system directory
+
+    Note: this check is only meaningful when the consumer also processes
+    Event 7 (Image Load) to populate the `signed` field. With Event 1
+    alone, signed is always None and this check always skips.
+    """
+    if event.signed is None:
+        return None  # cannot determine — Event 1 doesn't carry signature
+    if event.signed:
+        return None  # legitimately signed
+    if event.image is None:
+        return None
+
+    image_lower = event.image.lower()
+    if not any(image_lower.startswith(d) for d in _WINDOWS_DIRS):
+        return None  # not in a Windows system directory
+
+    return CmdlineMatch(
+        technique_id="T1036",
+        name="Unsigned binary in Windows system directory",
+        tactic="Defense Evasion",
+        confidence=0.90,
+        signals=[f"unsigned image={event.image}"],
+        suggested_score=85,  # auto-block threshold
+    )
+
+
 def analyze_process_event(event: ProcessEvent) -> list[CmdlineMatch]:
     """Analyze a ProcessEvent for MITRE TTPs.
 
@@ -232,6 +280,9 @@ def analyze_process_event(event: ProcessEvent) -> list[CmdlineMatch]:
     if integrity_match is not None:
         matches.append(integrity_match)
 
-    # 5. Unsigned masquerading — added in subsequent commit
+    # 5. Unsigned masquerading (T1036) — requires signed (from Event 7)
+    unsigned_match = _check_unsigned_masquerading(event)
+    if unsigned_match is not None:
+        matches.append(unsigned_match)
 
     return sorted(matches, key=lambda m: m.suggested_score, reverse=True)

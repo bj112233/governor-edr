@@ -19,6 +19,7 @@ from services.process_analyzer import (
     _check_hash_reputation,
     _check_integrity_level,
     _check_parent_anomaly,
+    _check_unsigned_masquerading,
     analyze_process_event,
     register_malicious_hash,
 )
@@ -490,3 +491,121 @@ class TestIntegrityLevel:
         matches = analyze_process_event(ev)
         techniques = [m.technique_id for m in matches]
         assert "T1548.002" not in techniques
+
+
+# ── Unsigned masquerading (T1036) ──
+
+
+class TestUnsignedMasquerading:
+    """T1036 — unsigned binary in Windows system directory."""
+
+    def test_unsigned_in_system32_flagged(self):
+        ev = ProcessEvent(
+            pid=1,
+            name="evil.exe",
+            cmdline="evil.exe",
+            source="sysmon",
+            image=r"C:\Windows\System32\evil.exe",
+            signed=False,
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1036" in techniques
+
+    def test_signed_in_system32_not_flagged(self):
+        ev = ProcessEvent(
+            pid=1,
+            name="cmd.exe",
+            cmdline="cmd",
+            source="sysmon",
+            image=r"C:\Windows\System32\cmd.exe",
+            signed=True,
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1036" not in techniques
+
+    def test_none_signed_skips_check(self):
+        """Event 1 doesn't carry signature info — signed is always None.
+        This check must skip (cannot determine unsigned status)."""
+        ev = ProcessEvent(
+            pid=1,
+            name="evil.exe",
+            cmdline="evil.exe",
+            source="sysmon",
+            image=r"C:\Windows\System32\evil.exe",
+            signed=None,  # Event 1 — no signature info
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1036" not in techniques
+
+    def test_unsigned_outside_windows_dir_not_flagged(self):
+        """Unsigned binary in user dir is not masquerading — just unsigned."""
+        ev = ProcessEvent(
+            pid=1,
+            name="myapp.exe",
+            cmdline="myapp.exe",
+            source="sysmon",
+            image=r"C:\Users\user\myapp.exe",
+            signed=False,
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1036" not in techniques
+
+    def test_unsigned_in_syswow64_flagged(self):
+        """SysWOW64 is also a Windows system directory."""
+        ev = ProcessEvent(
+            pid=1,
+            name="evil.dll",
+            cmdline="evil.dll",
+            source="sysmon",
+            image=r"C:\Windows\SysWOW64\evil.dll",
+            signed=False,
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1036" in techniques
+
+    def test_none_image_skips_check(self):
+        """No image path — cannot check directory, skip."""
+        ev = ProcessEvent(
+            pid=1,
+            name="x",
+            cmdline="x",
+            source="sysmon",
+            image=None,
+            signed=False,
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1036" not in techniques
+
+    def test_psutil_path_skips_check(self):
+        """psutil path (signed=None) must skip."""
+        ev = ProcessEvent(
+            pid=1,
+            name="evil.exe",
+            cmdline="evil.exe",
+            source="psutil",
+            image=r"C:\Windows\System32\evil.exe",
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1036" not in techniques
+
+    def test_unsigned_masquerading_score_is_85(self):
+        """Auto-block threshold."""
+        ev = ProcessEvent(
+            pid=1,
+            name="evil.exe",
+            cmdline="evil.exe",
+            source="sysmon",
+            image=r"C:\Windows\System32\evil.exe",
+            signed=False,
+        )
+        matches = analyze_process_event(ev)
+        t1036 = [m for m in matches if m.technique_id == "T1036"]
+        assert len(t1036) == 1
+        assert t1036[0].suggested_score == 85
