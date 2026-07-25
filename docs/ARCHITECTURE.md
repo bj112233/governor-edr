@@ -2741,6 +2741,38 @@ EvtSubscribe tested with asyncio bridge (callback thread →
 4. **No events lost in any scenario** — 0% loss across all four tests
    (steady, burst, steady+load, burst+load).
 
+### Operational SLA and Limitations
+
+**Burst SLA (measured at ~100 processes/sec)**: Under a burst of ~100
+process spawns in <1s, the K-th event in the batch is processed within:
+- K early (first 10): up to ~950ms
+- K middle (~100th): ~480ms
+- K late (last 10): ~23ms
+
+This means there is a window of up to ~1 second during a process-spraying
+burst where later events in the batch are not yet processed. For a
+legitimate process storm (e.g., build system, installer) this is
+acceptable. For a malicious process-spraying technique (T1059.003 spam
+to evade detection), the first events ARE processed immediately (0ms) —
+only the tail of the batch waits. The threat is still detected; the
+alert may arrive ~1s later than the spawn.
+
+**Untested beyond 100/sec**: Burst loads >100 processes/sec (e.g.,
+DoS-style spawn storm of 2000/sec) were NOT tested. The current
+unbounded `asyncio.Queue(maxsize=10000)` would buffer but the drain time
+scales linearly with batch size. If an SLA is needed for larger bursts,
+a **bounded queue + explicit drop policy** is required (drop oldest,
+drop lowest-score, or sample). This is a design decision for the
+production consumer, not the spike.
+
+**Measurement scope**: The latency measurement covers bridge +
+`analyze_cmdline` only. The full enrichment chain (`mitre_mapper`,
+intel feed lookups, `alert_history` DB writes) was NOT measured. These
+downstream steps involve I/O and may add per-event latency under burst
+if performed synchronously. The production consumer should either (a)
+batch downstream I/O, or (b) offload enrichment to a separate worker
+with its own queue, to keep the Event 1 consumer fast.
+
 ### Implementation Notes
 
 1. **pywin32 DLL bootstrap**: In venv, `win32evtlog.pyd` cannot find

@@ -1739,5 +1739,11 @@ queue drain = 484ms median for 200 events (operational SLA, not bridge
 overhead). Background load (30% CPU) has negligible impact. `analyze_cmdline`
 cost = 0.001ms/call (regex-based, not a bottleneck).
 
+**Operational SLA**: Under ~100 processes/sec burst, K-th event processes
+within ~950ms (early) to ~23ms (late). Not tested beyond 100/sec — larger
+bursts need bounded queue + drop policy. Measurement covers bridge +
+analyze_cmdline only; full enrichment chain (mitre_mapper, intel lookups,
+DB writes) not measured and may add latency if synchronous per-event.
+
 Next: production consumer feeding `cmdline_analyzer`/`mitre_mapper`,
 startup health check, expansion to Network/Image/Registry events.
