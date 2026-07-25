@@ -305,7 +305,7 @@ def verify_challenge(challenge_id: str, otp_code: str) -> bool:
 
 def _cleanup_expired() -> None:
     """Remove expired or exhausted challenges."""
-    expired_ids = [cid for cid, ch in _challenges.items() if ch.expired or (ch.consumed and ch not in _challenges)]
+    expired_ids = [cid for cid, ch in _challenges.items() if ch.expired or ch.consumed]
     for cid in expired_ids:
         del _challenges[cid]
 
