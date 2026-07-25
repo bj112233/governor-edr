@@ -257,6 +257,29 @@ MONITOR_Z_THRESHOLD = float(os.getenv("MONITOR_Z_THRESHOLD", "3.0"))
 MONITOR_REQUIRED_CYCLES = int(os.getenv("MONITOR_REQUIRED_CYCLES", "3"))
 
 # ==========================================
+# Sysmon Enriched Process Analysis (Wave 2)
+# ==========================================
+# Feature flag: when True, monitor_analyzer._diff_suspicious_procs calls
+# analyze_process_event (Sysmon-enriched wrapper with 4 new checks:
+# T1059.005, T1027, T1548.002, T1036) instead of analyze_cmdline (regex
+# only). Default False — these 4 checks have never run against live
+# traffic. Enable only after dry-run validation (see below).
+SYSMON_ENRICHED_ANALYSIS_ENABLED = os.getenv(
+    "SYSMON_ENRICHED_ANALYSIS_ENABLED", "false"
+).lower() in ("true", "1", "yes")
+
+# Dry-run mode: when True, the kill-queue path (queue_kill_for_ttp) is
+# NOT called. Instead, what WOULD have been queued is shadow-logged at
+# WARNING level. This lets the 4 new checks run against live traffic
+# for false-positive tuning without risking auto-kill. Set both flags:
+#   SYSMON_ENRICHED_ANALYSIS_ENABLED=true + SYSMON_KILL_QUEUE_DRY_RUN=true
+# → enriched checks active, kill-queue shadowed. After N days of clean
+# shadow logs, set SYSMON_KILL_QUEUE_DRY_RUN=false to go live.
+SYSMON_KILL_QUEUE_DRY_RUN = os.getenv(
+    "SYSMON_KILL_QUEUE_DRY_RUN", "true"
+).lower() in ("true", "1", "yes")
+
+# ==========================================
 # Proactive Threat Hunting (Agentic AI)
 # ==========================================
 # Daemon wakes the agent every 6h to hunt for threats based on system state +

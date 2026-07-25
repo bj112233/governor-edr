@@ -52,3 +52,20 @@
 - Always invoke: `.\.venv\Scripts\python.exe -m pytest`, `.\.venv\Scripts\python.exe bin\lint-gate.py`, etc. Or activate first: `.\.venv\Scripts\Activate.ps1`.
 - A PreToolUse hook (`.devin/hooks.v1.json` → `bin/enforce-venv-hook.ps1`) actively blocks exec calls that bypass the venv. Do not work around it.
 - To confirm venv presence: `Get-ChildItem -Force .venv\Scripts\python.exe`. Never conclude "no venv" from `find_by_name`/`glob` — they respect `.gitignore` and skip `.venv`.
+
+## 6. Integration Test Requirement (CRITICAL — prevents dead-code shipping)
+- Every new module that is supposed to feed an existing pipeline (kill-queue,
+  alert dispatcher, threat hunter, LLM agent) MUST have at least one E2E
+  integration test that verifies the FULL path: input → new module → existing
+  pipeline consumer → side effect (DB row, queued action, dispatched alert).
+- Unit coverage on the module in isolation is NOT sufficient. 99% line coverage
+  on `process_analyzer.py` did not catch that `analyze_process_event` was never
+  called from `monitor_analyzer` (which still used `analyze_cmdline`). The
+  tests called `register_malicious_hash` directly, so every line ran — but no
+  test verified that production code calls the function.
+- The integration test must use the REAL wiring (import the actual consumer,
+  mock only the terminal side effect like `queue_kill_for_ttp`), not a mock of
+  the consumer itself. A test that mocks `monitor_analyzer._diff_suspicious_procs`
+  proves nothing about wiring.
+- Pattern: `tests/test_<consumer>_<new_module>_integration.py` — e.g.
+  `test_monitor_analyzer_sysmon_integration.py`.

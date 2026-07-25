@@ -264,8 +264,27 @@ class SnapshotDiffer:
         """Detect TTPs in suspicious process command lines (PowerShell, WMIC, etc.).
 
         When TTP score >= 85, auto-queues a kill_process action for FSM approval.
+
+        Feature flag (SYSMON_ENRICHED_ANALYSIS_ENABLED):
+          - False (default): uses analyze_cmdline (regex engine, original path)
+          - True: uses analyze_process_event (Sysmon-enriched wrapper with 4
+            new checks: T1059.005, T1027, T1548.002, T1036). The psutil-derived
+            proc dict is converted to a ProcessEvent with source="psutil" so
+            Sysmon-only fields are None and the enriched checks skip gracefully.
+
+        Dry-run mode (SYSMON_KILL_QUEUE_DRY_RUN, default True):
+          - When True, queue_kill_for_ttp is NOT called. Instead, what would
+            have been queued is shadow-logged at WARNING. This lets the new
+            checks run against live traffic for false-positive tuning without
+            risking auto-kill.
         """
-        from services.cmdline_analyzer import analyze_cmdline
+        from config import SYSMON_ENRICHED_ANALYSIS_ENABLED, SYSMON_KILL_QUEUE_DRY_RUN
+
+        if SYSMON_ENRICHED_ANALYSIS_ENABLED:
+            from services.process_analyzer import analyze_process_event
+            from services.process_event import ProcessEvent
+        else:
+            from services.cmdline_analyzer import analyze_cmdline
 
         prev_pids = {p.get("pid") for p in prev.get("suspicious_procs", [])}
         curr_procs = curr.get("suspicious_procs", [])
@@ -277,33 +296,32 @@ class SnapshotDiffer:
             if pid in prev_pids or not cmdline:
                 continue
 
-            matches = analyze_cmdline(cmdline)
+            if SYSMON_ENRICHED_ANALYSIS_ENABLED:
+                # Build ProcessEvent from psutil proc dict — Sysmon fields
+                # are None (source="psutil"), so enriched checks skip and
+                # only analyze_cmdline + parent_anomaly (if parent_image
+                # were present) would fire. In the psutil path, parent_image
+                # is not available, so effectively only the regex engine
+                # runs — same as the non-flagged path, but through the
+                # wrapper so the code path is exercised.
+                pe = ProcessEvent(
+                    pid=pid,
+                    name=proc.get("name", ""),
+                    cmdline=cmdline,
+                    source="psutil",
+                )
+                matches = analyze_process_event(pe)
+            else:
+                matches = analyze_cmdline(cmdline)
+
             for m in matches:
                 if m.suggested_score < 50:
                     continue
                 severity = "critical" if m.suggested_score >= 85 else "warn"
 
-                kill_queued = 0
-                if m.suggested_score >= 85:
-                    try:
-                        from services.pending_actions import queue_kill_for_ttp
-
-                        kill_queued = await queue_kill_for_ttp(
-                            pid=pid,
-                            score=m.suggested_score,
-                            technique_id=m.technique_id,
-                            signals=m.signals,
-                            proc_name=proc.get("name", "?"),
-                            cmdline=cmdline,
-                        )
-                        logger.warning(
-                            "[SnapshotDiffer] AUTO-QUEUE kill_process #%d for PID %d (TTP score=%d)",
-                            kill_queued,
-                            pid,
-                            m.suggested_score,
-                        )
-                    except Exception as exc:
-                        logger.error("[SnapshotDiffer] Failed to queue kill for PID %d: %s", pid, exc)
+                kill_queued = await self._maybe_queue_kill(
+                    m, pid, proc.get("name", "?"), cmdline, SYSMON_KILL_QUEUE_DRY_RUN
+                )
 
                 details = {
                     "pid": pid,
@@ -327,6 +345,32 @@ class SnapshotDiffer:
                     )
                 )
         return events
+
+    @staticmethod
+    async def _maybe_queue_kill(
+        match: Any, pid: int, proc_name: str, cmdline: str, dry_run: bool
+    ) -> int:
+        """Queue kill_process for score>=85, or shadow-log in dry-run. Returns row ID."""
+        if match.suggested_score < 85:
+            return 0
+        if dry_run:
+            logger.warning(
+                "[SnapshotDiffer] DRY-RUN: would queue kill for PID %d (TTP %s score=%d)",
+                pid, match.technique_id, match.suggested_score,
+            )
+            return 0
+        try:
+            from services.pending_actions import queue_kill_for_ttp
+
+            row_id = await queue_kill_for_ttp(
+                pid=pid, score=match.suggested_score, technique_id=match.technique_id,
+                signals=match.signals, proc_name=proc_name, cmdline=cmdline,
+            )
+            logger.warning("[SnapshotDiffer] AUTO-QUEUE kill #%d PID %d (score=%d)", row_id, pid, match.suggested_score)
+            return row_id
+        except Exception as exc:
+            logger.error("[SnapshotDiffer] Failed to queue kill for PID %d: %s", pid, exc)
+            return 0
 
     @staticmethod
     def _extract_ips(suspicious_net: list[str]) -> set[str]:
