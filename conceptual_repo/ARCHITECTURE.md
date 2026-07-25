@@ -1747,3 +1747,12 @@ DB writes) not measured and may add latency if synchronous per-event.
 
 Next: production consumer feeding `cmdline_analyzer`/`mitre_mapper`,
 startup health check, expansion to Network/Image/Registry events.
+
+**Wave 2 (done)**: Production consumer implemented —
+`services/sysmon_consumer.py` (EvtSubscribe + asyncio bridge),
+`services/process_event.py` (unified ProcessEvent dataclass),
+`services/sysmon_xml.py` (XML adapter, malformed-XML robust),
+`services/process_analyzer.py` (wrapper with 4 Sysmon-enriched checks:
+T1059.005 parent anomaly, T1027 hash reputation, T1548.002 UAC bypass,
+T1036 unsigned masquerading). 105 tests, 99% coverage on analyzer.
+Registered as kernel-trusted in provenance.

@@ -2791,10 +2791,43 @@ with its own queue, to keep the Event 1 consumer fast.
    admin install: `Sysmon64.exe -accepteula -i sysmon_config.xml`. Config
    updates: `Sysmon64.exe -c sysmon_config.xml`. No reboot needed.
 
+### Production Implementation (Wave 2 — done)
+
+The spike was followed by a production consumer implementing the
+EvtSubscribe → asyncio bridge → analysis → alert pipeline:
+
+**New modules:**
+- `services/process_event.py` — `ProcessEvent` dataclass, unified model
+  for psutil and Sysmon sources. Sysmon-enriched fields (parent_image,
+  sha256, signed, integrity_level) default to None for psutil path.
+- `services/sysmon_xml.py` — Event 1 XML → ProcessEvent adapter.
+  Malformed-XML robust: returns None on any parse failure (never raises),
+  so a single bad event cannot kill the consumer thread.
+- `services/process_analyzer.py` — `analyze_process_event()` wrapper.
+  Always runs `analyze_cmdline()` (regex engine, unchanged) + 4
+  Sysmon-enriched checks that skip gracefully when their field is None:
+  1. **T1059.005** Parent anomaly (Office/browser/PDF → shell, score 75)
+  2. **T1027** Known-bad SHA256 (sync check against local set, score 90)
+  3. **T1548.002** UAC bypass (Medium parent → High child, score 80)
+  4. **T1036** Unsigned masquerading (unsigned in C:\Windows\, score 85)
+- `services/sysmon_consumer.py` — `SysmonConsumer` class. EvtSubscribe
+  callback (Windows thread) → `run_coroutine_threadsafe` → bounded
+  `asyncio.Queue(maxsize=10000)` → async consumer → parse → analyze →
+  alert_queue. Score >= 85 triggers alert with full event context.
+
+**Provenance:** `analyze_process_event` registered in
+`TRUSTED_SYSTEM_TOOLS` (kernel-trusted tier — stronger than psutil
+because process hollowing can lie to user-space APIs but not to
+Sysmon kernel hooks).
+
+**Test coverage:** 105 tests total (23 ProcessEvent + 32 sysmon_xml +
+44 process_analyzer + 7 sysmon_consumer). 99% line coverage on
+process_analyzer. None-handling boundary tests pin the skip-contract
+before mutation testing.
+
 ### Next Steps
 
-1. **Production consumer**: `services/sysmon_consumer.py` — EvtSubscribe +
-   asyncio bridge, parse Event 1 XML, feed to `cmdline_analyzer`/`mitre_mapper`
-2. **Startup health check**: Verify Sysmon service running, warn if not
-3. **Event type expansion**: Network Connect (3), Image Load (7), Registry (12-14)
-4. **Permission setup**: Document Event Log Readers group requirement in README
+1. **Startup health check**: Verify Sysmon service running, warn if not
+2. **Event type expansion**: Network Connect (3), Image Load (7), Registry (12-14)
+3. **Permission setup**: Document Event Log Readers group requirement in README
+4. **Mutation testing**: Run cosmic-ray on process_analyzer (None-branch heavy)
