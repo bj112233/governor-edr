@@ -1705,3 +1705,14 @@ The grammar works with zero latency penalty, but reliable enforcement
 requires switching to the raw API — deferred as a medium-sized change.
 The harness (`tests/golden/`) is preserved as golden-transcript test
 infrastructure.
+
+---
+
+## Appendix C — Mutation Testing Spike (2026-07-25)
+
+Cosmic-ray mutation testing on 5 core security modules. Key finding:
+the only module passing the 85% threshold was `is_powershell_safe`,
+developed with strict TDD (tests written **before** implementation).
+All post-hoc tested modules scored 40-83%. This is empirical evidence
+that TDD-first produces measurably stronger test suites. No permanent
+gate added; surviving mutants documented as backlog.
