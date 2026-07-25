@@ -20,6 +20,7 @@ from services.process_analyzer import (
     _check_integrity_level,
     _check_parent_anomaly,
     _check_unsigned_masquerading,
+    _integrity_rank,
     analyze_process_event,
     register_malicious_hash,
 )
@@ -472,6 +473,22 @@ class TestIntegrityLevel:
             cmdline="x",
             source="sysmon",
             integrity_level="AppContainer",
+            parent_image=r"C:\Program Files\Microsoft Office\winword.exe",
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1548.002" not in techniques
+
+    def test_empty_string_integrity_skips_check(self):
+        """Empty string integrity_level — _integrity_rank returns -1."""
+        assert _integrity_rank("") == -1
+        # Also verify via the full pipeline
+        ev = ProcessEvent(
+            pid=1,
+            name="x",
+            cmdline="x",
+            source="sysmon",
+            integrity_level="",
             parent_image=r"C:\Program Files\Microsoft Office\winword.exe",
         )
         matches = analyze_process_event(ev)
