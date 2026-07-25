@@ -25,7 +25,8 @@ from __future__ import annotations
 
 import logging
 import xml.etree.ElementTree as ET
-from typing import Optional
+
+from defusedxml.ElementTree import fromstring as _defused_fromstring
 
 from services.process_event import ProcessEvent
 
@@ -113,7 +114,7 @@ def parse_event1_xml(xml_str: str) -> ProcessEvent | None:
         return None
 
     try:
-        root = ET.fromstring(xml_str)
+        root = _defused_fromstring(xml_str)
     except ET.ParseError as e:
         # Malformed XML — log with a snippet so it's debuggable, but
         # do NOT re-raise. The consumer thread must survive this.

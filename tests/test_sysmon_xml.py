@@ -95,7 +95,7 @@ class TestRealEventParsing:
         ev = parse_event1_xml(_load_sample_event())
         assert ev is not None
         assert ev.user is not None
-        assert "bj121" in ev.user
+        assert "user" in ev.user
 
 
 # ── SHA256 parsing ──

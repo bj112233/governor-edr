@@ -254,6 +254,11 @@ Each lesson entry:
 - **Rule**: For risk-based coverage, target FUNCTION-level or BRANCH-level coverage on security-critical functions, not file-level. File-level 95% on multi-purpose files is the wrong metric ג€” it forces testing irrelevant code.
 
 ### L5: Subagents can't run exec ג€” always verify in parent
+
+### [2026-07-25] Generic "not security-critical" verdict on mutation survivors was wrong for two_factor
+- **Mistake**: After mutation testing spike, I wrote a blanket verdict: "surviving mutants in non-TDD modules are mostly NumberReplacer and comparison swaps — not security-critical gaps." This was wrong for `two_factor.py` specifically, where NumberReplacer on `_CHALLENGE_TTL=60`, `_MAX_VERIFY_ATTEMPTS=3`, `_OTP_COOLDOWN=30`, and backoff thresholds ARE the security boundary. A mutant surviving on `attempts >= _MAX_VERIFY_ATTEMPTS` changed to `>` means a 4th brute-force attempt is free.
+- **Root cause**: I categorized all NumberReplacer and comparison-swap survivors as "magic numbers" and "boundary conditions" without checking what the specific numbers and comparisons actually guard. In `two_factor`, the magic numbers ARE the attack surface — TTL, rate limits, and backoff thresholds are the defense against C2 hijacking brute-force.
+- **Rule**: Never apply a generic "not security-critical" verdict to mutation survivors. For each module, triage survivors against the module's specific security properties. NumberReplacer on a timeout constant in a rate limiter IS a security gap; NumberReplacer on a display format width is not. The categorization must be per-module, not per-operator-type.
 - **Mistake**: All 4 parallel subagents reported "unable to run pytest" and submitted unverified tests.
 - **Root cause**: Background subagents auto-deny exec tool permissions. They wrote tests via code review only.
 - **Rule**: After parallel subagent test-writing, the parent MUST run the tests. Expect 5-15% test failures from mock-path mismatches, assertion errors, and state-leak issues that only surface at runtime.

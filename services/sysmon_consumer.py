@@ -84,7 +84,7 @@ class SysmonConsumer:
             "events_alerted": self._events_alerted,
         }
 
-    def _callback(self, action: int, ctx: Any, event: Any) -> int:
+    def _callback(self, action: int, _ctx: Any, event: Any) -> int:
         """EvtSubscribe callback — runs on Windows internal thread.
 
         Must not raise — exceptions here don't reach the main log handler.

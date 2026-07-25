@@ -22,8 +22,6 @@ import sys
 import threading
 import time
 import xml.etree.ElementTree as ET
-from collections import deque
-from concurrent.futures import Future
 
 # Add project root to path so services._winutil is importable
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

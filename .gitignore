@@ -91,3 +91,15 @@ lint_out.txt
 tests_out3.txt
 vt_fail.txt
 
+# === Sysmon spike artifacts (binaries, output logs — not source) ===
+# Keep: sysmon_config.xml, sample_event1.xml, spike_*.py (source/fixtures)
+# Ignore: Sysmon binaries, EULA, runtime output logs, wevtutil dumps
+tools/sysmon/Sysmon.exe
+tools/sysmon/Sysmon64.exe
+tools/sysmon/Sysmon64a.exe
+tools/sysmon/Sysmon.zip
+tools/sysmon/Eula.txt
+tools/sysmon/*_output.txt
+tools/sysmon/wevtutil_*.txt
+tools/sysmon/reconfig_out.txt
+

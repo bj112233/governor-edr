@@ -37,7 +37,7 @@ _records: list[tuple[int, float, float, float, float]] = []
 _event_seq = 0
 
 
-def callback(action, ctx, event):
+def callback(action, _ctx, event):
     global _event_seq
     if action == win32evtlog.EvtSubscribeActionDeliver:
         _event_seq += 1

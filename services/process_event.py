@@ -24,7 +24,7 @@ psutil's user-space API, but Sysmon hooks at the kernel ETW layer. See
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass
