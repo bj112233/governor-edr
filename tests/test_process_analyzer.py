@@ -14,7 +14,13 @@ from __future__ import annotations
 import pytest
 
 from services.cmdline_analyzer import CmdlineMatch
-from services.process_analyzer import _check_parent_anomaly, analyze_process_event
+from services.process_analyzer import (
+    _KNOWN_BAD_HASHES,
+    _check_hash_reputation,
+    _check_parent_anomaly,
+    analyze_process_event,
+    register_malicious_hash,
+)
 from services.process_event import ProcessEvent
 
 # ── Base wrapper: always runs analyze_cmdline ──
@@ -261,3 +267,105 @@ class TestCheckParentAnomalyUnit:
         )
         result = _check_parent_anomaly(ev)
         assert result is not None
+
+
+# ── Hash reputation (T1027) ──
+
+
+class TestHashReputation:
+    """T1027 — known-malicious file hash check."""
+
+    def setup_method(self):
+        """Clear the known-bad set before each test (module-level state)."""
+        _KNOWN_BAD_HASHES.clear()
+
+    def teardown_method(self):
+        _KNOWN_BAD_HASHES.clear()
+
+    def test_known_bad_hash_detected(self):
+        register_malicious_hash("a" * 64)
+        ev = ProcessEvent(
+            pid=1,
+            name="evil.exe",
+            cmdline="evil.exe",
+            source="sysmon",
+            sha256="a" * 64,
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1027" in techniques
+
+    def test_clean_hash_not_flagged(self):
+        register_malicious_hash("a" * 64)
+        ev = ProcessEvent(
+            pid=1,
+            name="clean.exe",
+            cmdline="clean.exe",
+            source="sysmon",
+            sha256="b" * 64,
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1027" not in techniques
+
+    def test_none_sha256_skips_check(self):
+        """psutil path (sha256=None) must skip hash check."""
+        register_malicious_hash("a" * 64)
+        ev = ProcessEvent(
+            pid=1,
+            name="evil.exe",
+            cmdline="evil.exe",
+            source="psutil",
+            sha256=None,
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1027" not in techniques
+
+    def test_known_bad_hash_score_is_90(self):
+        """Known-bad hash should score 90 (auto-block threshold)."""
+        register_malicious_hash("a" * 64)
+        ev = ProcessEvent(
+            pid=1,
+            name="evil.exe",
+            cmdline="evil.exe",
+            source="sysmon",
+            sha256="a" * 64,
+        )
+        matches = analyze_process_event(ev)
+        hash_matches = [m for m in matches if m.technique_id == "T1027"]
+        assert len(hash_matches) == 1
+        assert hash_matches[0].suggested_score == 90
+
+    def test_register_normalizes_to_lowercase(self):
+        """register_malicious_hash should lowercase the hash."""
+        register_malicious_hash("A" * 64)
+        ev = ProcessEvent(
+            pid=1,
+            name="x",
+            cmdline="x",
+            source="sysmon",
+            sha256="a" * 64,  # lowercase in event
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1027" in techniques  # matched despite register uppercase
+
+    def test_register_rejects_wrong_length(self):
+        """Non-64-char strings should not be added to known-bad set."""
+        register_malicious_hash("a" * 63)  # too short
+        register_malicious_hash("a" * 65)  # too long
+        assert len(_KNOWN_BAD_HASHES) == 0
+
+    def test_empty_known_bad_set_no_false_positives(self):
+        """Empty known-bad set (no feeds loaded) → no hash matches."""
+        ev = ProcessEvent(
+            pid=1,
+            name="x",
+            cmdline="x",
+            source="sysmon",
+            sha256="a" * 64,
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1027" not in techniques

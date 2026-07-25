@@ -87,6 +87,50 @@ def _check_parent_anomaly(event: ProcessEvent) -> CmdlineMatch | None:
     )
 
 
+# ── Hash reputation: known-malicious SHA256 set ──
+# Placeholder for local threat intel. In production, this is populated
+# from threat_feeds sync (Maltiverse, VT) via a periodic background refresh.
+# The check is sync (no I/O) to keep the consumer thread fast — async
+# enrichment via intel_enricher.enrich_hash happens in a separate worker
+# if the sync check flags the hash as "needs deeper lookup".
+_KNOWN_BAD_HASHES: set[str] = set()  # populated at runtime by threat feed sync
+
+
+def register_malicious_hash(sha256: str) -> None:
+    """Add a SHA256 to the known-bad set (called by threat feed sync)."""
+    h = sha256.lower().strip()
+    if len(h) == 64:
+        _KNOWN_BAD_HASHES.add(h)
+
+
+def _check_hash_reputation(event: ProcessEvent) -> CmdlineMatch | None:
+    """T1027 — known-malicious file hash.
+
+    Returns a CmdlineMatch if event.sha256 is in the known-bad set.
+    Returns None if:
+      - sha256 is None (psutil path, or Sysmon hash timeout)
+      - sha256 is not in the known-bad set
+
+    Note: this is a fast sync check against a local set. Deep async
+    enrichment (VT/Maltiverse lookup) is triggered separately by the
+    consumer if this check flags the hash, to avoid blocking the
+    consumer thread on network I/O.
+    """
+    if event.sha256 is None:
+        return None
+    if event.sha256 not in _KNOWN_BAD_HASHES:
+        return None
+
+    return CmdlineMatch(
+        technique_id="T1027",
+        name="Known-malicious file hash",
+        tactic="Defense Evasion",
+        confidence=0.95,
+        signals=[f"sha256={event.sha256[:16]}..."],
+        suggested_score=90,  # Known-bad hash → auto-block threshold
+    )
+
+
 def analyze_process_event(event: ProcessEvent) -> list[CmdlineMatch]:
     """Analyze a ProcessEvent for MITRE TTPs.
 
@@ -109,7 +153,12 @@ def analyze_process_event(event: ProcessEvent) -> list[CmdlineMatch]:
     if parent_match is not None:
         matches.append(parent_match)
 
-    # 3-4. Hash reputation, integrity level, unsigned masquerading
+    # 3. Hash reputation (T1027) — requires sha256
+    hash_match = _check_hash_reputation(event)
+    if hash_match is not None:
+        matches.append(hash_match)
+
+    # 4-5. Integrity level, unsigned masquerading
     # — added in subsequent commits
 
     return sorted(matches, key=lambda m: m.suggested_score, reverse=True)
