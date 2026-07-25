@@ -17,6 +17,7 @@ from services.cmdline_analyzer import CmdlineMatch
 from services.process_analyzer import (
     _KNOWN_BAD_HASHES,
     _check_hash_reputation,
+    _check_integrity_level,
     _check_parent_anomaly,
     analyze_process_event,
     register_malicious_hash,
@@ -369,3 +370,123 @@ class TestHashReputation:
         matches = analyze_process_event(ev)
         techniques = [m.technique_id for m in matches]
         assert "T1027" not in techniques
+
+
+# ── Integrity level (T1548.002) ──
+
+
+class TestIntegrityLevel:
+    """T1548.002 — UAC bypass via integrity level escalation."""
+
+    def test_high_integrity_from_office_parent_flagged(self):
+        """Office app (Medium) spawning High-integrity child = UAC bypass."""
+        ev = ProcessEvent(
+            pid=1,
+            name="cmd.exe",
+            cmdline="cmd",
+            source="sysmon",
+            integrity_level="High",
+            parent_image=r"C:\Program Files\Microsoft Office\winword.exe",
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1548.002" in techniques
+
+    def test_medium_integrity_not_flagged(self):
+        """Medium integrity is normal — no escalation."""
+        ev = ProcessEvent(
+            pid=1,
+            name="cmd.exe",
+            cmdline="cmd",
+            source="sysmon",
+            integrity_level="Medium",
+            parent_image=r"C:\Program Files\Microsoft Office\winword.exe",
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1548.002" not in techniques
+
+    def test_none_integrity_skips_check(self):
+        """psutil path (integrity_level=None) must skip."""
+        ev = ProcessEvent(
+            pid=1,
+            name="cmd.exe",
+            cmdline="cmd",
+            source="psutil",
+            integrity_level=None,
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1548.002" not in techniques
+
+    def test_high_integrity_legitimate_parent_not_flagged(self):
+        """High integrity from explorer.exe (can elevate via UAC consent)
+        — not flagged (parent not in suspicious table)."""
+        ev = ProcessEvent(
+            pid=1,
+            name="cmd.exe",
+            cmdline="cmd",
+            source="sysmon",
+            integrity_level="High",
+            parent_image=r"C:\Windows\explorer.exe",
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1548.002" not in techniques
+
+    def test_high_integrity_no_parent_not_flagged(self):
+        """High integrity with no parent info — can't determine escalation,
+        don't flag (avoid false positive)."""
+        ev = ProcessEvent(
+            pid=1,
+            name="cmd.exe",
+            cmdline="cmd",
+            source="sysmon",
+            integrity_level="High",
+            parent_image=None,
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1548.002" not in techniques
+
+    def test_system_integrity_from_browser_flagged(self):
+        """System integrity from browser = definitely UAC bypass."""
+        ev = ProcessEvent(
+            pid=1,
+            name="powershell.exe",
+            cmdline="powershell",
+            source="sysmon",
+            integrity_level="System",
+            parent_image=r"C:\Program Files\Google\Chrome\chrome.exe",
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1548.002" in techniques
+
+    def test_unknown_integrity_string_skips_check(self):
+        """Unknown integrity level string — skip, don't crash."""
+        ev = ProcessEvent(
+            pid=1,
+            name="x",
+            cmdline="x",
+            source="sysmon",
+            integrity_level="AppContainer",
+            parent_image=r"C:\Program Files\Microsoft Office\winword.exe",
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1548.002" not in techniques
+
+    def test_low_integrity_not_flagged(self):
+        """Low integrity is de-escalation, not escalation — not flagged."""
+        ev = ProcessEvent(
+            pid=1,
+            name="x",
+            cmdline="x",
+            source="sysmon",
+            integrity_level="Low",
+            parent_image=r"C:\Program Files\Microsoft Office\winword.exe",
+        )
+        matches = analyze_process_event(ev)
+        techniques = [m.technique_id for m in matches]
+        assert "T1548.002" not in techniques

@@ -131,6 +131,75 @@ def _check_hash_reputation(event: ProcessEvent) -> CmdlineMatch | None:
     )
 
 
+# ── Integrity level: UAC bypass detection ──
+# Windows integrity levels (low to high): Untrusted < Low < Medium < High < System
+# Normal: Medium-integrity process spawns Medium-integrity child.
+# Suspicious: Medium-integrity process spawns High-integrity child → UAC bypass
+# (T1548.002 — Bypass UAC). This should never happen legitimately.
+_INTEGRITY_ORDER = ["untrusted", "low", "medium", "high", "system"]
+
+
+def _integrity_rank(level: str) -> int:
+    """Return numeric rank of an integrity level string (0-4). -1 if unknown."""
+    if not level:
+        return -1
+    try:
+        return _INTEGRITY_ORDER.index(level.lower().strip())
+    except ValueError:
+        return -1
+
+
+def _check_integrity_level(event: ProcessEvent) -> CmdlineMatch | None:
+    """T1548.002 — UAC bypass via integrity level escalation.
+
+    Returns a CmdlineMatch if the process integrity level is High or
+    System but the parent (if known) is Medium or lower — indicating
+    a Medium-integrity process spawned a High-integrity child without
+    UAC consent prompt.
+
+    Returns None if:
+      - integrity_level is None (psutil path or Sysmon didn't capture it)
+      - integrity_level is Medium or lower (normal)
+      - integrity_level is High/System but parent is also High/System
+        (legitimate elevation, e.g. via UAC consent)
+      - integrity_level is unknown string
+    """
+    if event.integrity_level is None:
+        return None
+
+    child_rank = _integrity_rank(event.integrity_level)
+    if child_rank < 0:
+        return None  # unknown integrity level string
+    if child_rank <= _INTEGRITY_ORDER.index("medium"):
+        return None  # Medium or lower — normal, no escalation
+
+    # Child is High or System — check parent if known
+    if event.parent_image is not None:
+        # We don't have parent integrity level in Event 1, but if the
+        # parent is a known Medium-integrity app (Office, browser), the
+        # escalation is suspicious. For now, flag any High/System child
+        # whose parent is in the suspicious-parent table (those are all
+        # Medium-integrity apps).
+        parent_name = _basename_lower(event.parent_image)
+        if parent_name in _SUSPICIOUS_PARENT_PAIRS:
+            return CmdlineMatch(
+                technique_id="T1548.002",
+                name="UAC bypass — integrity level escalation",
+                tactic="Privilege Escalation",
+                confidence=0.80,
+                signals=[
+                    f"integrity={event.integrity_level}",
+                    f"parent={parent_name} (Medium)",
+                ],
+                suggested_score=80,
+            )
+
+    # High/System integrity without a known-Medium parent — could be
+    # legitimate (UAC consent, scheduled task, service). Don't flag
+    # without parent context to avoid false positives.
+    return None
+
+
 def analyze_process_event(event: ProcessEvent) -> list[CmdlineMatch]:
     """Analyze a ProcessEvent for MITRE TTPs.
 
@@ -158,7 +227,11 @@ def analyze_process_event(event: ProcessEvent) -> list[CmdlineMatch]:
     if hash_match is not None:
         matches.append(hash_match)
 
-    # 4-5. Integrity level, unsigned masquerading
-    # — added in subsequent commits
+    # 4. Integrity level (T1548.002) — requires integrity_level + parent context
+    integrity_match = _check_integrity_level(event)
+    if integrity_match is not None:
+        matches.append(integrity_match)
+
+    # 5. Unsigned masquerading — added in subsequent commit
 
     return sorted(matches, key=lambda m: m.suggested_score, reverse=True)
