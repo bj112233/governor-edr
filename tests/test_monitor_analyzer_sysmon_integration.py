@@ -241,3 +241,38 @@ async def test_t1027_hash_check_not_fired_in_psutil_path(monkeypatch):
         assert not mock_queue_kill.called
     finally:
         _KNOWN_BAD_HASHES.discard(bad_hash)
+
+
+# ── _maybe_queue_kill unit tests (cover missing branches) ──
+
+
+@pytest.mark.asyncio
+async def test_maybe_queue_kill_skips_below_threshold():
+    """Score < 85 → returns 0 immediately, no queue call."""
+    from services.cmdline_analyzer import CmdlineMatch
+    from services.monitor_analyzer import SnapshotDiffer
+
+    match = CmdlineMatch(
+        technique_id="T1059.005", name="test", tactic="Execution",
+        confidence=0.5, signals=["s"], suggested_score=75,
+    )
+    result = await SnapshotDiffer._maybe_queue_kill(match, 1234, "x", "x", dry_run=False)
+    assert result == 0
+
+
+@pytest.mark.asyncio
+async def test_maybe_queue_kill_handles_exception():
+    """queue_kill_for_ttp raises → except branch logs error, returns 0."""
+    from services.cmdline_analyzer import CmdlineMatch
+    from services.monitor_analyzer import SnapshotDiffer
+
+    match = CmdlineMatch(
+        technique_id="T1059.001", name="test", tactic="Execution",
+        confidence=0.9, signals=["s"], suggested_score=90,
+    )
+    with patch(
+        "services.pending_actions.queue_kill_for_ttp",
+        AsyncMock(side_effect=RuntimeError("DB locked")),
+    ):
+        result = await SnapshotDiffer._maybe_queue_kill(match, 1234, "x", "x", dry_run=False)
+    assert result == 0  # graceful fallback, not crash
