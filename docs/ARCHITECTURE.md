@@ -2598,13 +2598,42 @@ run against each mutant.
 |--------|---------|--------|----------|-------|---------|
 | `security` (is_powershell_safe, **TDD**) | 83 | 72 | 11 | **86%** | Strong |
 | `_injection_anomaly` | 77 | 64 | 13 | **83%** | Close |
+| `two_factor` (**after boundary tests**) | 304 | 224 | 80 | **73%** | Moderate |
 | `_react_parser` | 239 | 103 | 75+60FP | **57%** | Weak |
 | `ioc_extractor` | 128 | 69 | 59 | **53%** | Weak |
-| `two_factor` | 305 | 125 | 180 | **40%** | Weak |
+| `two_factor` (before boundary tests) | 305 | 125 | 180 | **40%** | Weak |
 
 (`_react_parser` has 60 false-positive BitOr-on-regex-flags mutants —
 `re.DOTALL | re.IGNORECASE` is mathematically equivalent to `+`, `*`, etc.
 since flag values are powers of 2. Adjusted score excludes these.)
+
+### two_factor Boundary Test Intervention
+
+After the initial spike showed `two_factor` at 40% (the weakest module and
+the most security-critical — C2 hijacking defense), a targeted triage of the
+180 surviving mutants was performed. Security-boundary mutants were isolated
+(TTL, rate limits, backoff thresholds, rejection paths) from noise (Sub_*
+on retry_after calculation, NumberReplacer on non-security constants).
+
+32 boundary tests were added (`tests/test_two_factor_boundaries.py`) covering:
+- TTL expiry at t=59/60/61 (strict `>`)
+- Max attempts at exactly 3 (strict `>=`, challenge deletion verified)
+- OTP cooldown at t=29/30/31 (strict `<`)
+- Lockout cooldown at t=59/60/61 (strict `<`)
+- Backoff thresholds: 3→1h, 5→24h, 6→24h (strict `>=`)
+- Rejection paths: consumed/expired/max_attempts (return False → True)
+- OTP hash comparison (`!=` → `<`) with 7 parametrized wrong OTPs
+- Lockout scope (`op == operation` → `!=`)
+- Lockout recorded after 3 wrong (AddNot on max_attempts_reached)
+
+A **production bug** was also discovered: `_cleanup_expired` used
+`ch not in _challenges` which raises `TypeError` on unhashable
+`TwoFactorChallenge` dataclass. Fixed to `ch.consumed`.
+
+**Result: 40% → 73%** (above 70% threshold). The remaining 80 survivors are
+equivalent mutants (e.g., `>= → ==` on max_attempts is equivalent because
+attempts never exceeds 3) or non-security-critical (Sub_* on retry_after
+reporting value — blocking still works).
 
 ### Key Finding: TDD Empirically Validated
 

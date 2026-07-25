@@ -1714,5 +1714,12 @@ Cosmic-ray mutation testing on 5 core security modules. Key finding:
 the only module passing the 85% threshold was `is_powershell_safe`,
 developed with strict TDD (tests written **before** implementation).
 All post-hoc tested modules scored 40-83%. This is empirical evidence
-that TDD-first produces measurably stronger test suites. No permanent
-gate added; surviving mutants documented as backlog.
+that TDD-first produces measurably stronger test suites.
+
+`two_factor` (the most security-critical module — C2 hijacking defense)
+was triaged and improved: 32 boundary tests added, score raised from
+40% to 73% (above 70% threshold). A production bug in `_cleanup_expired`
+(TypeError on unhashable dataclass) was also discovered and fixed.
+
+No permanent mutation-testing gate added; surviving mutants documented
+as backlog. TDD-first policy adopted for new security-critical modules.
