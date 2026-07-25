@@ -168,6 +168,12 @@ async def main():
     _background_tasks.add(health_observer_task)
     health_observer_task.add_done_callback(_background_tasks.discard)
 
+    # Sysmon service health check — non-fatal, logs warning if not running.
+    # The bot works without Sysmon (psutil path), but the 4 enriched checks
+    # (T1059.005, T1027, T1548.002, T1036) require Sysmon Event 1 telemetry.
+    from services.startup._health import check_sysmon_health
+    asyncio.create_task(check_sysmon_health(), name="sysmon_health_check")
+
     # Pre-compute skill embeddings for semantic routing (non-blocking fallback on failure)
     try:
         from services.agent import init_skill_embeddings

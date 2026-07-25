@@ -6,6 +6,51 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def _check_sysmon_service() -> bool:
+    """Check if the Sysmon service is running on Windows.
+
+    Uses `sc query` (available on all Windows versions) to avoid the
+    PowerShell startup overhead. Returns True if Sysmon is running,
+    False if not installed or stopped. On non-Windows, returns False.
+    """
+    import sys
+
+    if sys.platform != "win32":
+        return False
+    try:
+        import subprocess
+
+        result = subprocess.run(
+            ["sc", "query", "Sysmon"],
+            capture_output=True, text=True, timeout=3.0,
+        )
+        # "RUNNING" appears in the STATE line when the service is active
+        return "RUNNING" in result.stdout
+    except Exception:
+        return False
+
+
+async def check_sysmon_health() -> bool:
+    """Async wrapper — verify Sysmon service is running.
+
+    Logs a warning if Sysmon is not running (the SysmonConsumer will
+    not receive events). This is a non-fatal check: the bot runs
+    without Sysmon (psutil path still works), but the 4 enriched
+    checks (T1059.005, T1027, T1548.002, T1036) will never fire.
+    """
+    running = await asyncio.to_thread(_check_sysmon_service)
+    if running:
+        logger.info("[Health] ✅ Sysmon service running — enriched process checks active")
+    else:
+        logger.warning(
+            "[Health] ⚠️ Sysmon service NOT running — "
+            "SysmonConsumer will not receive events. "
+            "Enriched checks (T1059.005, T1027, T1548.002, T1036) inactive. "
+            "Install Sysmon or set SYSMON_ENRICHED_ANALYSIS_ENABLED=false."
+        )
+    return running
+
+
 async def _probe_mcp(port: int) -> bool:
     """HTTP health probe for MCP service with optional auth."""
     import httpx
