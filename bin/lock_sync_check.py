@@ -67,7 +67,7 @@ def run_gate(title: str) -> bool:
         # Export ALL groups (runtime + dev) so the fallback requirements.txt
         # is a complete drop-in replacement for the original hand-maintained file.
         result = subprocess.run(
-            [*uv_cmd, "export", "--format", "requirements.txt",
+            [*uv_cmd, "export", "--format", "requirements-txt",
              "--no-emit-project", "--output-file", str(tmp_path)],
             capture_output=True, text=True, cwd=str(project_root),
         )

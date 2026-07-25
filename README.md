@@ -1,6 +1,6 @@
-# Sentinel
+# Governor EDR
 
-[![CI](https://github.com/bj112233/sentinel-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/bj112233/sentinel-agent/actions/workflows/ci.yml)
+[![CI](https://github.com/bj112233/governor-edr/actions/workflows/ci.yml/badge.svg)](https://github.com/bj112233/governor-edr/actions/workflows/ci.yml)
 
 Local-first threat detection agent for Windows. Runs a 4B-parameter LLM
 on-device (KoboldCpp) for inference without cloud dependency. Monitors

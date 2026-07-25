@@ -1,4 +1,4 @@
-# ── Sentinel — packaging & dependency manifest ──────────────────────────────
+# ── governor-edr — packaging & dependency manifest ───────────────────────────
 # Source of truth for runtime + dev dependencies. `uv.lock` pins exact versions;
 # `requirements.txt` is an auto-generated artifact (do not edit) exported via
 # `uv export --format requirements-txt --output requirements.txt` for fallback
@@ -12,13 +12,13 @@
 #   - pydantic>=2.9.0   (2.13 tested OK — full suite + DeprecationWarning as error)
 
 [project]
-name = "sentinel"
+name = "governor-edr"
 version = "0.1.0"
-description = "Sentinel — asynchronous OSINT/forensics Telegram bot (Edge AI, local LLM)"
+description = "Governor EDR — local-first threat detection agent (Edge AI, local LLM, MITRE TTP detection)"
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.12,<3.13"
-# Sentinel is an application, not a distributable library — no PyPI publish.
+# governor-edr is an application, not a distributable library — no PyPI publish.
 # uv treats a [project] without [build-system] as virtual (no self-build).
 # `package = false` makes that explicit (see [tool.uv]).
 
@@ -177,7 +177,7 @@ dev = [
 
 # ── uv configuration ─────────────────────────────────────────────────────────
 [tool.uv]
-# Sentinel is an application, not a distributable package — do not build/install
+# governor-edr is an application, not a distributable package — do not build/install
 # the project itself, only its dependencies.
 package = false
 
