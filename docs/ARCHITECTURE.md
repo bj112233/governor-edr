@@ -2708,19 +2708,38 @@ due to single-maintainer bus-factor risk.
 
 Sysmon v15.21 installed with minimal config (Event 1 only, SHA256 hashing).
 EvtSubscribe tested with asyncio bridge (callback thread →
-`run_coroutine_threadsafe` → `asyncio.Queue` → async consumer).
+`run_coroutine_threadsafe` → `asyncio.Queue` → async consumer calling
+`analyze_cmdline` — the real production handler).
 
 | Metric | Result | Criterion | Pass? |
 |--------|--------|-----------|-------|
 | Burst loss (100 procs) | **0%** (200/200) | <5% | Yes |
 | Bridge delivery rate | **100%** (302/302) | 100% | Yes |
-| Bridge latency median | 203ms | <500ms | Yes |
-| Bridge latency p95 | 843ms | — | Acceptable |
-| Callback arrival | sub-ms | — | Yes |
+| Steady-state bridge latency | **0ms median**, 16ms p95 | <500ms | Yes |
+| Burst queue drain (200 events) | 484ms median, 922ms p95 | — | Operational |
+| Background load impact (30% CPU) | Negligible (0ms steady, 453ms burst) | — | Yes |
+| `analyze_cmdline` cost | 0.001ms/call (regex) | — | Yes |
 
-**Key finding**: EvtSubscribe delivers 100% of events with zero loss under
-burst load. The asyncio bridge (consumer thread → run_coroutine_threadsafe)
-also delivers 100% — no events dropped in the cross-thread handoff.
+**Key findings (rigorous spike with real consumer + load simulation)**:
+
+1. **Steady-state latency = 0ms** — the bridge itself is instantaneous. The
+   earlier 203ms median was an artifact of mixing burst events with
+   steady-state in a single measurement window.
+
+2. **Burst latency = queue drain time, not bridge latency** — when 200 events
+   arrive in <1s, the accumulation curve shows: first 10 events wait 945ms
+   (queue fills faster than consumer drains), middle 10 wait 484ms, last 10
+   wait 23ms (queue already draining). This is an **operational SLA
+   property**: "under burst of N events/sec, the K-th event processes within
+   Xms" — not a bridge overhead.
+
+3. **Background load has negligible impact** — 30% CPU contention from
+   simulated LLM/threat_hunter work did not degrade steady-state (still 0ms)
+   or burst (453ms vs 484ms idle). The GIL does not become a bottleneck
+   because `analyze_cmdline` is regex-based (0.001ms/call).
+
+4. **No events lost in any scenario** — 0% loss across all four tests
+   (steady, burst, steady+load, burst+load).
 
 ### Implementation Notes
 

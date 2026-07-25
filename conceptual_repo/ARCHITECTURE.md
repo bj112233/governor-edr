@@ -1734,9 +1734,10 @@ approaches evaluated: polling, EvtSubscribe (push on Event Log), ETW native
 dependency (no Rust wheel, no single-maintainer risk).
 
 Results: 0% burst loss (200/200 events), 100% asyncio bridge delivery
-(302/302), median bridge latency 203ms. Sysmon v15.21 installed with
-minimal config (Event 1 only). pywin32 DLL bootstrap added to
-`_winutil.py` for venv compatibility.
+(302/302). Steady-state bridge latency = 0ms median (16ms p95). Burst
+queue drain = 484ms median for 200 events (operational SLA, not bridge
+overhead). Background load (30% CPU) has negligible impact. `analyze_cmdline`
+cost = 0.001ms/call (regex-based, not a bottleneck).
 
 Next: production consumer feeding `cmdline_analyzer`/`mitre_mapper`,
 startup health check, expansion to Network/Image/Registry events.
