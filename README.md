@@ -213,7 +213,7 @@ KoboldCpp runtime) and will not collect or pass on Linux/macOS.
 
 ## License
 
-Copyright (C) 2026 Sentinel contributors.
+Copyright (C) 2026 bj112233.
 
 This program is free software: you can redistribute it and/or modify it
 under the terms of the GNU Affero General Public License as published by
@@ -224,3 +224,12 @@ This program is distributed in the hope that it will be useful, but
 WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 or FITNESS FOR A PARTICULAR PURPOSE. See the [LICENSE](LICENSE) for the
 full terms.
+
+### Commercial licensing
+
+AGPLv3 requires anyone who runs a modified version of this software as a
+network service to make their complete source code available to users of
+that service. If this requirement doesn't work for your use case (e.g. you
+want to build a closed-source or SaaS product on top of this codebase),
+a separate commercial license is available — contact the copyright holder
+(bj112233) to discuss terms.
