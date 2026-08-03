@@ -115,7 +115,7 @@ dependencies = [
     "msgspec>=0.21.1",
 
     # ── Document / feed processing ─────────────────────────────────────────
-    "feedparser>=6.0.12",
+    "feedparser>=6.0.14",
     "beautifulsoup4>=4.14.3",
     "readability-lxml>=0.8.1",
     "html2text>=2025.4.15",
